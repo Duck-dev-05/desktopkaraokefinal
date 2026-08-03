@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { check, Update } from "@tauri-apps/plugin-updater";
-import { relaunch } from "@tauri-apps/api/process";
+import { relaunch } from "@tauri-apps/plugin-process";
 
 type UpdaterState =
   | { status: "idle" }

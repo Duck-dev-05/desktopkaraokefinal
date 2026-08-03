@@ -37,4 +37,5 @@ tokio-tungstenite = "0.30.0"
 futures-util = "0.3.33"
 dotenvy = "0.15.7"
 tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 

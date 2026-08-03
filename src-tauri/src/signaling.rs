@@ -1,10 +1,10 @@
+use futures_util::{SinkExt, StreamExt};
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::{mpsc, Mutex};
 use tokio_tungstenite::tungstenite::protocol::Message;
-use futures_util::{StreamExt, SinkExt};
 
 type Tx = mpsc::UnboundedSender<Message>;
 type PeerMap = Arc<Mutex<HashMap<SocketAddr, Tx>>>;
@@ -65,7 +65,7 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
                 if let Ok(text) = msg.to_text() {
                     if let Ok(json) = serde_json::from_str::<serde_json::Value>(text) {
                         let peers = peer_map_clone.lock().await;
-                        
+
                         // If the message specifies a target, try to route it
                         if let Some(target_addr_str) = json.get("to").and_then(|v| v.as_str()) {
                             if let Ok(target_addr) = target_addr_str.parse::<SocketAddr>() {
@@ -77,7 +77,8 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
                         }
 
                         // Otherwise broadcast to everyone else
-                        let broadcast_recipients = peers.iter()
+                        let broadcast_recipients = peers
+                            .iter()
                             .filter(|(peer_addr, _)| peer_addr != &&sender_addr)
                             .map(|(_, ws_sink)| ws_sink);
 
