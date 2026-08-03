@@ -1,0 +1,140 @@
+/* Add this to the end of SingView.css */
+
+.search-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 10, 15, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-8);
+}
+
+.search-overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.search-overlay-header h2 {
+  font-size: 1.75rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.overlay-search-input {
+  width: 100%;
+  padding: var(--space-4) var(--space-6);
+  font-size: 1.25rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-default);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  margin-bottom: var(--space-6);
+  outline: none;
+  transition: all var(--transition-base);
+}
+
+.overlay-search-input:focus {
+  border-color: var(--primary);
+  background: var(--bg-card-hover);
+  box-shadow: var(--shadow-glow);
+}
+
+.overlay-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  overflow-y: auto;
+  flex: 1;
+  padding-right: var(--space-2);
+}
+
+.overlay-search-results::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overlay-search-results::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.overlay-result-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  border: 1px solid var(--border-subtle);
+}
+
+.overlay-result-item:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-default);
+  transform: translateX(4px);
+}
+
+.overlay-result-item img {
+  width: 64px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+}
+
+.overlay-result-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.overlay-result-info h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.overlay-result-info p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% - 2rem);
+  left: 0;
+  width: 100%;
+  background: var(--bg-surface);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-default);
+  border-top: none;
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  z-index: 1000;
+  overflow: hidden;
+  padding-top: var(--space-2);
+}
+
+.autocomplete-item {
+  padding: var(--space-3) var(--space-6);
+  display: flex;
+  align-items: center;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all var(--transition-base);
+}
+
+.autocomplete-item:hover {
+  background: var(--primary-light);
+}

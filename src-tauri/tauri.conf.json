@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Karaoke Pro",
+  "version": "0.1.0",
+  "identifier": "com.admin.karaokedesktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Karaoke Pro",
+        "width": 1280,
+        "height": 720
+      }
+    ],
+    "security": {
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["**"]
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "resources": [
+      "../.env"
+    ],
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installerHooks": "installer-hooks.nsh"
+      }
+    },
+    "externalBin": [
+      "ffmpeg"
+    ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEJFNkEwQ0E5Mzg0NTVCQjcKUldTM1cwVTRxUXhxdmpWNXBlOGlYY2xHMFdsdW5uMkRHdldpbkZQK1MxUzVpazFnUXpQZ013MnAK",
+      "endpoints": [
+        "https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/releases/latest/download/latest.json"
+      ],
+      "dialog": false
+    }
+  }
+}

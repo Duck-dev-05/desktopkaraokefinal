@@ -1,0 +1,29 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": ["main", "karaoke-player"],
+  "permissions": [
+    "core:window:allow-create",
+    "core:webview:allow-create-webview-window",
+    "core:default",
+    "opener:default",
+    "sql:allow-load",
+    "sql:allow-execute",
+    "sql:allow-select",
+    "sql:allow-close",
+    "oauth:allow-start",
+    "oauth:allow-cancel",
+    "core:event:default",
+    "dialog:default",
+    "fs:default",
+    {
+      "identifier": "fs:allow-document-write",
+      "allow": [{ "path": "$DOCUMENT/**" }]
+    },
+    {
+      "identifier": "fs:allow-document-read",
+      "allow": [{ "path": "$DOCUMENT/**" }]
+    }
+  ]
+}

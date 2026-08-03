@@ -1,0 +1,609 @@
+/* ════════════════════════════════════════════
+   Recordings Page
+════════════════════════════════════════════ */
+
+.recordings-page {
+  padding-bottom: 140px;
+}
+
+/* ── Hero ───────────────────────────────────── */
+.rec-hero {
+  position: relative;
+  border-radius: var(--radius-2xl);
+  padding: 2.25rem 2rem;
+  margin-bottom: 2.5rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.08) 60%, transparent 100%);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  overflow: hidden;
+  animation: rec-fade-down 0.5s ease;
+}
+
+.rec-hero-glow {
+  position: absolute;
+  top: -70px;
+  right: -70px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.rec-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex: 1;
+}
+
+.rec-hero-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+}
+
+.rec-hero-left h1 {
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.3rem 0;
+  color: var(--text-primary);
+}
+
+.rec-hero-left p {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  max-width: 520px;
+}
+
+.rec-hero-right {
+  flex-shrink: 0;
+}
+
+.rec-hero-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  padding: 0.9rem 1.5rem;
+}
+
+.rec-stat-val {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.rec-stat-lbl {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Empty State ────────────────────────────── */
+.rec-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 2rem;
+  text-align: center;
+  gap: 0.9rem;
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl);
+  border: 1px dashed rgba(99, 102, 241, 0.3);
+}
+
+.rec-empty-icon {
+  font-size: 3.5rem;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.rec-empty h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rec-empty p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  max-width: 380px;
+  line-height: 1.5;
+}
+
+/* ── Grid ───────────────────────────────────── */
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.1rem;
+}
+
+/* ── Card ───────────────────────────────────── */
+.rec-card {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.25s ease;
+  animation: rec-fade-up 0.4s ease both;
+}
+
+.rec-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15);
+}
+
+/* Thumbnail */
+.rec-card-thumb {
+  position: relative;
+  width: 100%;
+  height: 150px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.rec-thumb-bg {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1e1b4b, #312e81, #1e1b4b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rec-thumb-icon {
+  color: rgba(99, 102, 241, 0.4);
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.rec-card:hover .rec-thumb-icon {
+  color: rgba(99, 102, 241, 0.7);
+  transform: scale(1.15);
+}
+
+.rec-thumb-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
+}
+
+.rec-play-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5);
+}
+
+.rec-card:hover .rec-play-btn {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.rec-has-video-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-full);
+  padding: 3px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #a5b4fc;
+}
+
+/* Card body */
+.rec-card-body {
+  padding: 0.9rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rec-card-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.rec-card-meta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.rec-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ── Modal extras (single pane) ─────────────── */
+.local-pane.single {
+  height: 65vh;
+  background: radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, #000 100%);
+}
+
+/* ── Shared modal styles (pane-label, modal-close-btn, etc.) ── */
+/* These are defined in Recordings.css and reused from Duets */
+.modal-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modal-header-tag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: #6366f1;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.modal-header-artist {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.modal-close-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.modal-close-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+}
+
+.pane-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-radius: var(--radius-full);
+  padding: 4px 10px;
+  letter-spacing: 0.03em;
+}
+
+/* ── Animations ─────────────────────────────── */
+@keyframes rec-fade-down {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rec-fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Video Modal (shared) ───────────────────── */
+.video-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(10px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: modal-appear 0.2s ease;
+}
+
+@keyframes modal-appear {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.video-modal-content {
+  background: rgba(20, 20, 35, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  box-shadow: 0 0 60px rgba(99, 102, 241, 0.2);
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  animation: modal-slide-up 0.3s ease;
+}
+
+@keyframes modal-slide-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.video-modal-content.large {
+  max-width: 1100px;
+}
+
+.video-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.75rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.video-modal-header h3 {
+  margin: 0.2rem 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 600px;
+}
+
+.recorded-video-player {
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  background: transparent;
+  z-index: 2;
+}
+
+.split-view-player {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 65vh;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  gap: 2px;
+}
+
+.youtube-pane,
+.local-pane {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.youtube-pane {
+  background: #000;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Crop YouTube chrome (title bar top ~50px, controls bottom ~50px) */
+.yt-player-wrapper {
+  width: calc(100% + 2px);
+  height: calc(100% + 100px);
+  margin-top: -50px;
+  margin-bottom: -50px;
+  pointer-events: none;
+}
+
+.local-pane {
+  background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.22) 0%, rgba(10,10,25,1) 70%);
+}
+
+.local-pane::before {
+  content: "🎤";
+  position: absolute;
+  font-size: 7rem;
+  opacity: 0.1;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.local-pane .recorded-video-player {
+  position: relative;
+  z-index: 2;
+}
+
+.split-view-player .recorded-video-player {
+  height: 100%;
+  max-height: none;
+}
+
+/* ── Custom Player ─────────────────────────── */
+.custom-player {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+  justify-content: center;
+  align-items: center;
+}
+
+.custom-player-video {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  object-fit: contain;
+  background: transparent;
+  display: block;
+}
+
+/* Controls bar */
+.custom-player-controls {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.75rem 1.25rem;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  z-index: 3;
+  flex-shrink: 0;
+}
+
+.cp-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.cp-play-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.6);
+}
+
+.cp-time {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  min-width: 38px;
+}
+
+/* Progress track */
+.cp-progress-wrap {
+  flex: 1;
+  position: relative;
+  height: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.cp-progress-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.cp-progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #6366f1, #a855f7);
+  transition: width 0.1s linear;
+}
+
+.cp-progress-input {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+  height: 20px;
+  margin: 0;
+}
+
+.cp-vol-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.cp-vol-btn:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Audio-only single pane */
+.local-pane.single .custom-player {
+  justify-content: center;
+  gap: 0;
+}
+
+.local-pane.single .custom-player-video {
+  display: none; /* audio-only has no visual track */
+}
+
