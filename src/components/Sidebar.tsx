@@ -115,8 +115,8 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
       {/* ── HEADER ───────────────────────────────── */}
       <div className="sidebar-header">
         <div className="logo-wrap">
-          <div className="logo-badge">
-            <Mic2 size={16} strokeWidth={2.5} color="#fff" />
+          <div className="logo-badge" style={{ background: 'transparent', padding: 0 }}>
+            <img src="/logo.png" alt="Logo" style={{ width: '24px', height: '24px', borderRadius: '6px' }} />
           </div>
           {!collapsed && (
             <div className="logo-text-wrap animate-fade-in">

@@ -19,7 +19,7 @@ interface UpdaterProps {
 export function useCheckForUpdates() {
   const [state, setState] = useState<UpdaterState>({ status: "idle" });
 
-  const checkUpdates = async () => {
+  const checkUpdates = async (isManual = true) => {
     setState({ status: "checking" });
     try {
       const update = await check();
@@ -29,7 +29,12 @@ export function useCheckForUpdates() {
         setState({ status: "idle" });
       }
     } catch (err) {
-      setState({ status: "error", message: String(err) });
+      if (isManual) {
+        setState({ status: "error", message: String(err) });
+      } else {
+        console.error("Auto update check failed:", err);
+        setState({ status: "idle" });
+      }
     }
   };
 
@@ -67,14 +72,14 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
   // Automatic check on mount (delayed slightly so app can finish loading)
   useEffect(() => {
     if (!manual) {
-      const timer = setTimeout(checkUpdates, 3000);
+      const timer = setTimeout(() => checkUpdates(false), 3000);
       return () => clearTimeout(timer);
     }
   }, [manual]);
 
   // Manual check – fire immediately when prop flips
   useEffect(() => {
-    if (manual) checkUpdates();
+    if (manual) checkUpdates(true);
   }, [manual]);
 
   // Nothing to show while idle / checking silently
@@ -150,7 +155,7 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
               <button className="btn-secondary" onClick={dismiss}>
                 Đóng
               </button>
-              <button className="btn-primary" onClick={checkUpdates}>
+              <button className="btn-primary" onClick={() => checkUpdates(true)}>
                 Thử lại
               </button>
             </div>
