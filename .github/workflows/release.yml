@@ -39,6 +39,10 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
+      - name: Setup sidecars
+        run: |
+          node -e "const fs = require('fs'); const ffmpeg = require('ffmpeg-static'); fs.copyFileSync(ffmpeg, 'src-tauri/ffmpeg-x86_64-pc-windows-msvc.exe'); console.log('Copied ffmpeg sidecar');"
+
       - name: Build and release Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
