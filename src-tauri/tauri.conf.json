@@ -44,13 +44,10 @@
     "longDescription": "Karaoke Pro is a feature-rich desktop karaoke application with YouTube streaming, Party mode, Peer-to-Peer connectivity, local media support, and more.",
     "homepage": "https://github.com/Duck-dev-05/karaokedesktop",
     "windows": {
+      "minimumWebview2Version": "2.0.0",
       "nsis": {
-        "installerIcon": "icons/icon.ico",
         "installerHooks": "installer-hooks.nsh",
-        "license": "LICENSE.txt",
-        "createDesktopShortcut": true,
-        "createStartMenuShortcut": true,
-        "minimumWebview2Version": "2.0.0"
+        "displayLanguageSelector": false
       }
     },
     "macOS": {
