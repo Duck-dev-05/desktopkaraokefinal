@@ -1,11 +1,19 @@
 import { Mic, Volume2, Monitor, RefreshCw, CheckCircle2, AlertCircle, Download, Loader2 } from "lucide-react";
 import { usePlayer } from "../context/PlayerContext";
-import { useCheckForUpdates } from "../components/Updater";
+import { useUpdaterContext } from "../components/Updater";
+import { getVersion } from "@tauri-apps/api/app";
+import { useEffect, useState } from "react";
 import "./Settings.css";
 
 const Settings = () => {
   const { audioOffset, setAudioOffset } = usePlayer();
-  const { state: updateState, checkUpdates, installUpdate } = useCheckForUpdates();
+  const { state: updateState, checkUpdates, installUpdate } = useUpdaterContext();
+  const [appVersion, setAppVersion] = useState<string>("");
+
+  useEffect(() => {
+    getVersion().then(setAppVersion).catch(console.error);
+  }, []);
+
   const handleCheckUpdates = () => {
     checkUpdates(true);
   };
@@ -134,7 +142,7 @@ const Settings = () => {
             <div className="setting-row">
               <div className="setting-row-label">
                 <label>Phiên bản hiện tại</label>
-                <span className="setting-row-desc">Karaoke Pro v0.1.0</span>
+                <span className="setting-row-desc">Karaoke Pro v{appVersion || "..."}</span>
               </div>
 
               {/* ── Dynamic Update Button ── */}

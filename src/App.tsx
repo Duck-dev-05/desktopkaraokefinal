@@ -29,7 +29,7 @@ import GlobalPlayer from "./components/GlobalPlayer";
 import RemoteControl from "./components/RemoteControl";
 import ErrorBoundary from "./components/ErrorBoundary";
 import NetworkStatus from "./components/NetworkStatus";
-import Updater from "./components/Updater";
+import Updater, { UpdaterProvider } from "./components/Updater";
 
 function App() {
   const [isPlayerWindow, setIsPlayerWindow] = useState(false);
@@ -48,52 +48,54 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <PlayerProvider>
-          <QueueProvider>
-            <HistoryProvider>
-              <PartyProvider>
-                {isPlayerWindow ? (
-                  <GlobalPlayer />
-                ) : (
-                  <Router>
-                    <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/" element={<MainLayout />}>
-                  {/* Public Routes */}
-                  <Route index element={<Home />} />
-                  <Route path="explore" element={<Explore />} />
-                  <Route path="artist" element={<Artist />} />
-                  <Route path="premium" element={<Premium />} />
+      <UpdaterProvider>
+        <AuthProvider>
+          <PlayerProvider>
+            <QueueProvider>
+              <HistoryProvider>
+                <PartyProvider>
+                  {isPlayerWindow ? (
+                    <GlobalPlayer />
+                  ) : (
+                    <Router>
+                      <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/" element={<MainLayout />}>
+                      {/* Public Routes */}
+                      <Route index element={<Home />} />
+                      <Route path="explore" element={<Explore />} />
+                      <Route path="artist" element={<Artist />} />
+                      <Route path="premium" element={<Premium />} />
 
-                  {/* Protected Routes (Require Login) */}
-                  <Route path="queue" element={<ProtectedRoute><Queue /></ProtectedRoute>} />
-                  <Route path="party" element={<ProtectedRoute><Party /></ProtectedRoute>} />
-                  <Route path="history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-                  <Route path="recordings" element={<ProtectedRoute><Recordings /></ProtectedRoute>} />
-                  <Route path="downloads" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
-                  <Route path="local-media" element={<ProtectedRoute><LocalMedia /></ProtectedRoute>} />
-                  <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                  <Route path="playlist/:id" element={<ProtectedRoute><Playlist /></ProtectedRoute>} />
-                  <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                      {/* Protected Routes (Require Login) */}
+                      <Route path="queue" element={<ProtectedRoute><Queue /></ProtectedRoute>} />
+                      <Route path="party" element={<ProtectedRoute><Party /></ProtectedRoute>} />
+                      <Route path="history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+                      <Route path="recordings" element={<ProtectedRoute><Recordings /></ProtectedRoute>} />
+                      <Route path="downloads" element={<ProtectedRoute><Downloads /></ProtectedRoute>} />
+                      <Route path="local-media" element={<ProtectedRoute><LocalMedia /></ProtectedRoute>} />
+                      <Route path="profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                      <Route path="playlist/:id" element={<ProtectedRoute><Playlist /></ProtectedRoute>} />
+                      <Route path="settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
 
-                  {/* Catch-all route to prevent black screen on unknown URLs */}
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Route>
-              </Routes>
-              
-              {/* Persistent Global Player (Remote Control for main window) */}
-              <RemoteControl />
-              <NetworkStatus />
-              <Updater />
-              
-            </Router>
-            )}
-            </PartyProvider>
-          </HistoryProvider>
-        </QueueProvider>
-      </PlayerProvider>
-    </AuthProvider>
+                      {/* Catch-all route to prevent black screen on unknown URLs */}
+                      <Route path="*" element={<Navigate to="/" replace />} />
+                    </Route>
+                  </Routes>
+
+                  {/* Persistent Global Player (Remote Control for main window) */}
+                  <RemoteControl />
+                  <NetworkStatus />
+                  <Updater />
+
+                </Router>
+                )}
+                </PartyProvider>
+              </HistoryProvider>
+            </QueueProvider>
+          </PlayerProvider>
+        </AuthProvider>
+      </UpdaterProvider>
     </ErrorBoundary>
   );
 }

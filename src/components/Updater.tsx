@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef, createContext, useContext } from "react";
 import { check, Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 
@@ -16,10 +16,65 @@ interface UpdaterProps {
   onDismiss?: () => void;
 }
 
+interface UpdaterContextValue {
+  state: UpdaterState;
+  checkUpdates: (isManual?: boolean) => void;
+  installUpdate: (update: Update) => void;
+  setState: React.Dispatch<React.SetStateAction<UpdaterState>>;
+}
+
+const UpdaterContext = createContext<UpdaterContextValue | null>(null);
+
+export function useUpdaterContext() {
+  const context = useContext(UpdaterContext);
+  if (!context) {
+    throw new Error("useUpdaterContext must be used within UpdaterProvider");
+  }
+  return context;
+}
+
+export function UpdaterProvider({ children }: { children: React.ReactNode }) {
+  const updaterHook = useCheckForUpdates();
+  return (
+    <UpdaterContext.Provider value={updaterHook}>
+      {children}
+    </UpdaterContext.Provider>
+  );
+}
+
+/** Returns a friendly Vietnamese message for known updater errors */
+function friendlyError(err: unknown): string {
+  const raw = String(err).toLowerCase();
+  if (
+    raw.includes("could not fetch a valid release json") ||
+    raw.includes("release json") ||
+    raw.includes("404") ||
+    raw.includes("not found") ||
+    raw.includes("failed to fetch")
+  ) {
+    return "Không thể kết nối đến máy chủ cập nhật. Vui lòng thử lại sau.";
+  }
+  if (raw.includes("network") || raw.includes("internet") || raw.includes("connection")) {
+    return "Mất kết nối mạng. Hãy kiểm tra internet và thử lại.";
+  }
+  return "Kiểm tra cập nhật thất bại. Vui lòng thử lại.";
+}
+
+/** Returns true for errors that mean "no releases published yet" or unreachable server */
+function isNoReleaseError(err: unknown): boolean {
+  const raw = String(err).toLowerCase();
+  return (
+    raw.includes("could not fetch a valid release json") ||
+    raw.includes("release json") ||
+    raw.includes("404") ||
+    raw.includes("not found")
+  );
+}
+
 export function useCheckForUpdates() {
   const [state, setState] = useState<UpdaterState>({ status: "idle" });
 
-  const checkUpdates = async (isManual = true) => {
+  const checkUpdates = useCallback(async (isManual = true) => {
     setState({ status: "checking" });
     try {
       const update = await check();
@@ -29,16 +84,23 @@ export function useCheckForUpdates() {
         setState({ status: "idle" });
       }
     } catch (err) {
+      console.error("Update check failed:", err);
       if (isManual) {
-        setState({ status: "error", message: String(err) });
+        // For "no release JSON" errors during manual check, show friendly message
+        setState({ status: "error", message: friendlyError(err) });
       } else {
-        console.error("Auto update check failed:", err);
-        setState({ status: "idle" });
+        // During auto-check: if it's just "no releases yet", stay idle silently
+        if (isNoReleaseError(err)) {
+          setState({ status: "idle" });
+        } else {
+          // Real unexpected error – still silent, but logged
+          setState({ status: "idle" });
+        }
       }
     }
-  };
+  }, []);
 
-  const installUpdate = async (update: Update) => {
+  const installUpdate = useCallback(async (update: Update) => {
     let downloaded = 0;
     let total = 0;
     setState({ status: "downloading", progress: 0 });
@@ -56,9 +118,9 @@ export function useCheckForUpdates() {
       });
       await relaunch();
     } catch (err) {
-      setState({ status: "error", message: String(err) });
+      setState({ status: "error", message: friendlyError(err) });
     }
-  };
+  }, []);
 
   return { state, checkUpdates, installUpdate, setState };
 }
@@ -68,19 +130,21 @@ export function useCheckForUpdates() {
 // ────────────────────────────────────────────────────────────────────
 export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
   const { state, checkUpdates, installUpdate, setState } = useCheckForUpdates();
+  const hasAutoChecked = useRef(false);
 
   // Automatic check on mount (delayed slightly so app can finish loading)
   useEffect(() => {
-    if (!manual) {
+    if (!manual && !hasAutoChecked.current) {
+      hasAutoChecked.current = true;
       const timer = setTimeout(() => checkUpdates(false), 3000);
       return () => clearTimeout(timer);
     }
-  }, [manual]);
+  }, [manual, checkUpdates]);
 
   // Manual check – fire immediately when prop flips
   useEffect(() => {
     if (manual) checkUpdates(true);
-  }, [manual]);
+  }, [manual, checkUpdates]);
 
   // Nothing to show while idle / checking silently
   if (state.status === "idle" || state.status === "checking") return null;
