@@ -28,6 +28,11 @@ src-tauri/target/
 # Test / scratch directories
 src-tauri/test_yt/
 
+# Environment variables (NEVER commit real secrets!)
+.env
+.env.local
+.env.production
+
 # Signing keys (never commit private keys!)
 ~/.tauri/
 *.key
