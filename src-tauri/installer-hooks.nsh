@@ -24,10 +24,7 @@
     CreateShortCut "$SMPROGRAMS\Karaoke Pro\Karaoke Pro.lnk" "$INSTDIR\Karaoke Pro.exe" "" "$INSTDIR\Karaoke Pro.exe" 0
     CreateShortCut "$SMPROGRAMS\Karaoke Pro\Uninstall Karaoke Pro.lnk" "$INSTDIR\uninstall.exe"
 
-    ; Offer to launch the app after install
-    MessageBox MB_YESNO|MB_ICONQUESTION "Karaoke Pro has been installed successfully!$\n$\nWould you like to launch Karaoke Pro now?" IDNO done
-        Exec '"$INSTDIR\Karaoke Pro.exe"'
-    done:
+    ; Offer to launch the app after install (Removed)
 !macroend
 
 ; ─────────────────────────────────────────────────────────────────
