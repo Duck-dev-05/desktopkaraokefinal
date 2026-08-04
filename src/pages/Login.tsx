@@ -7,9 +7,8 @@ import { useAuth } from "../context/AuthContext";
 import { initDB, User } from "../db";
 import "./Login.css";
 
-// PLACEHOLDER CONSTANTS for the user to replace later.
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_CLIENT_ID";
-const GOOGLE_CLIENT_SECRET = import.meta.env.VITE_GOOGLE_CLIENT_SECRET || "YOUR_CLIENT_SECRET";
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+const GOOGLE_CLIENT_SECRET = import.meta.env.VITE_GOOGLE_CLIENT_SECRET || "";
 const GOOGLE_REDIRECT_URI = import.meta.env.VITE_GOOGLE_REDIRECT_URI || "http://localhost:8989";
 
 const Login = () => {
@@ -48,8 +47,8 @@ const Login = () => {
   };
 
   const handleGoogleLogin = async () => {
-    if (GOOGLE_CLIENT_ID === "YOUR_CLIENT_ID" || !GOOGLE_CLIENT_ID) {
-      alert("Vui lòng cập nhật VITE_GOOGLE_CLIENT_ID và VITE_GOOGLE_CLIENT_SECRET trong file .env trước!");
+    if (!GOOGLE_CLIENT_ID) {
+      alert("Google login không khả dụng: VITE_GOOGLE_CLIENT_ID chưa được cấu hình trong build này.");
       return;
     }
 
