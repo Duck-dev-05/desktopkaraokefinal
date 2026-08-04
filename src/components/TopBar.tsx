@@ -52,6 +52,25 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
     }
   };
 
+  const handleTheaterModeClick = async () => {
+    try {
+      if (window.__TAURI_INTERNALS__) {
+        const { getCurrentWindow } = await import('@tauri-apps/api/window');
+        const appWindow = getCurrentWindow();
+        const isFullscreen = await appWindow.isFullscreen();
+        await appWindow.setFullscreen(!isFullscreen);
+      } else {
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+        } else if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.error('Failed to toggle fullscreen:', err);
+    }
+  };
+
   return (
     <header className={`topbar glass ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       {/* Left: App branding (shows when sidebar is collapsed) */}
@@ -96,7 +115,11 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
       {/* Right: Actions */}
       <div className="topbar-right">
         {isTheaterMode && (
-          <div className="theater-mode-badge animate-fade-in" title="Chế độ màn hình lớn đang bật">
+          <div 
+            className="theater-mode-badge animate-fade-in" 
+            title="Chế độ màn hình lớn đang bật. Nhấn để bật/tắt toàn màn hình."
+            onClick={handleTheaterModeClick}
+          >
             <MonitorPlay size={16} />
             <span>Theater Mode</span>
           </div>

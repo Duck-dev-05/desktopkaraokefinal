@@ -63,7 +63,7 @@ export const searchYoutubePlaylists = async (query: string): Promise<YoutubePlay
   let lastError = null;
 
   for (const apiKey of apiKeys) {
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${encodeURIComponent(query)}&type=playlist&key=${apiKey}`;
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(query)}&type=playlist&key=${apiKey}`;
 
     try {
       const response = await fetch(url);

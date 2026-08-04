@@ -42,7 +42,7 @@ const Home = () => {
 
   const renderGrid = (songs: YoutubeVideo[]) => (
     <div className="song-grid">
-      {songs.slice(0, 5).map((song) => (
+      {songs.slice(0, 12).map((song) => (
 
         <SongCard
           key={song.id}

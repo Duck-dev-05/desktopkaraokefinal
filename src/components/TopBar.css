@@ -155,6 +155,13 @@
   box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
   animation: pulse-border 2.5s infinite;
   margin-right: var(--space-2);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.theater-mode-badge:hover {
+  background: rgba(168, 85, 247, 0.25);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
 }
 
 .theater-mode-badge svg {
