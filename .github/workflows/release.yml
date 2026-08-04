@@ -167,12 +167,12 @@ jobs:
 
             | Platform | File | Notes |
             |---|---|---|
-            | 🪟 Windows | `Karaoke Pro_x.x.x_x64-setup.exe` | NSIS Installer (recommended) |
-            | 🪟 Windows | `Karaoke Pro_x.x.x_x64_en-US.msi` | MSI Installer |
-            | 🍎 macOS (Apple Silicon) | `Karaoke Pro_x.x.x_aarch64.dmg` | For M1/M2/M3 Macs |
-            | 🍎 macOS (Intel) | `Karaoke Pro_x.x.x_x64.dmg` | For Intel-based Macs |
-            | 🐧 Linux | `karaoke-pro_x.x.x_amd64.AppImage` | Universal (run directly) |
-            | 🐧 Linux | `karaoke-pro_x.x.x_amd64.deb` | Debian/Ubuntu package |
+            | <img src="https://cdn.simpleicons.org/windows/0078D6" width="16" /> Windows | `Karaoke Pro_x.x.x_x64-setup.exe` | NSIS Installer (recommended) |
+            | <img src="https://cdn.simpleicons.org/windows/0078D6" width="16" /> Windows | `Karaoke Pro_x.x.x_x64_en-US.msi` | MSI Installer |
+            | <img src="https://cdn.simpleicons.org/apple/999999" width="16" /> macOS (Apple Silicon) | `Karaoke Pro_x.x.x_aarch64.dmg` | For M1/M2/M3 Macs |
+            | <img src="https://cdn.simpleicons.org/apple/999999" width="16" /> macOS (Intel) | `Karaoke Pro_x.x.x_x64.dmg` | For Intel-based Macs |
+            | <img src="https://cdn.simpleicons.org/linux/999999" width="16" /> Linux | `karaoke-pro_x.x.x_amd64.AppImage` | Universal (run directly) |
+            | <img src="https://cdn.simpleicons.org/linux/999999" width="16" /> Linux | `karaoke-pro_x.x.x_amd64.deb` | Debian/Ubuntu package |
 
             See the [CHANGELOG](https://github.com/Duck-dev-05/karaokedesktop/blob/main/CHANGELOG.md) for full release notes.
           releaseDraft: false  # Publish releases immediately when a tag is pushed
