@@ -1,22 +1,13 @@
-import { Mic, Volume2, Monitor, RefreshCw } from "lucide-react";
+import { Mic, Volume2, Monitor, RefreshCw, CheckCircle2, AlertCircle, Download, Loader2 } from "lucide-react";
 import { usePlayer } from "../context/PlayerContext";
-import { useState } from "react";
 import { useCheckForUpdates } from "../components/Updater";
-import Updater from "../components/Updater";
 import "./Settings.css";
 
 const Settings = () => {
   const { audioOffset, setAudioOffset } = usePlayer();
-  const { state: updateState, checkUpdates, setState: setUpdateState } = useCheckForUpdates();
-  const [manualCheck, setManualCheck] = useState(false);
-
+  const { state: updateState, checkUpdates, installUpdate } = useCheckForUpdates();
   const handleCheckUpdates = () => {
-    setManualCheck(true);
-  };
-
-  const handleUpdaterDismiss = () => {
-    setManualCheck(false);
-    setUpdateState({ status: "idle" });
+    checkUpdates(true);
   };
 
   return (
@@ -56,7 +47,7 @@ const Settings = () => {
             <div className="setting-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Activity size={16} color="var(--primary)" />
+                  <RefreshCw size={16} color="var(--primary)" />
                   Đồng bộ Âm thanh (Audio Latency Calibration)
                 </label>
                 <span className="text-primary font-mono">{audioOffset > 0 ? `+${audioOffset}` : audioOffset}ms</span>
@@ -141,33 +132,92 @@ const Settings = () => {
           </div>
           <div className="settings-content">
             <div className="setting-row">
-              <div>
-                <label style={{ fontWeight: 600 }}>Phiên bản hiện tại</label>
-                <p className="text-muted text-sm" style={{ margin: '2px 0 0' }}>Karaoke Pro v0.1.0</p>
+              <div className="setting-row-label">
+                <label>Phiên bản hiện tại</label>
+                <span className="setting-row-desc">Karaoke Pro v0.1.0</span>
               </div>
-              <button
-                id="check-updates-btn"
-                className="btn-primary"
-                onClick={handleCheckUpdates}
-                disabled={updateState.status === "checking"}
-                style={{ minWidth: 160 }}
-              >
-                {updateState.status === "checking" ? "Đang kiểm tra…" : "Kiểm tra cập nhật"}
-              </button>
+
+              {/* ── Dynamic Update Button ── */}
+              {updateState.status === "idle" && (
+                <button
+                  id="check-updates-btn"
+                  className="update-btn update-btn--idle"
+                  onClick={handleCheckUpdates}
+                >
+                  <RefreshCw size={15} />
+                  Kiểm tra cập nhật
+                </button>
+              )}
+
+              {updateState.status === "checking" && (
+                <button className="update-btn update-btn--checking" disabled>
+                  <Loader2 size={15} className="spin" />
+                  Đang kiểm tra…
+                </button>
+              )}
+
+              {updateState.status === "available" && (
+                <button
+                  id="install-update-btn"
+                  className="update-btn update-btn--available"
+                  onClick={() => installUpdate((updateState as any).update)}
+                >
+                  <Download size={15} />
+                  Cập nhật v{(updateState as any).update?.version}
+                </button>
+              )}
+
+              {updateState.status === "downloading" && (
+                <div className="update-progress-inline">
+                  <div className="update-progress-bar">
+                    <div
+                      className="update-progress-fill"
+                      style={{ width: `${(updateState as any).progress}%` }}
+                    />
+                  </div>
+                  <span className="update-pct">{(updateState as any).progress}%</span>
+                </div>
+              )}
+
+              {updateState.status === "installing" && (
+                <button className="update-btn update-btn--checking" disabled>
+                  <Loader2 size={15} className="spin" />
+                  Đang cài đặt…
+                </button>
+              )}
+
+              {updateState.status === "error" && (
+                <button
+                  className="update-btn update-btn--error"
+                  onClick={handleCheckUpdates}
+                >
+                  <AlertCircle size={15} />
+                  Thử lại
+                </button>
+              )}
             </div>
-            {updateState.status === "idle" && manualCheck === false && (
+
+            {/* Status hint row */}
+            {updateState.status === "idle" && (
               <p className="text-muted text-sm" style={{ marginTop: 4 }}>
                 Ứng dụng tự động kiểm tra cập nhật khi khởi động.
+              </p>
+            )}
+            {updateState.status === "error" && (
+              <p className="text-sm" style={{ color: "var(--error, #f87171)", marginTop: 4 }}>
+                <AlertCircle size={13} style={{ verticalAlign: "middle", marginRight: 4 }} />
+                {(updateState as any).message}
+              </p>
+            )}
+            {updateState.status === "available" && (
+              <p className="text-sm" style={{ color: "var(--success, #4ade80)", marginTop: 4 }}>
+                <CheckCircle2 size={13} style={{ verticalAlign: "middle", marginRight: 4 }} />
+                Có bản cập nhật mới sẵn sàng để cài đặt!
               </p>
             )}
           </div>
         </section>
       </div>
-
-      {/* Updater dialog triggered from Settings */}
-      {manualCheck && (
-        <Updater manual={manualCheck} onDismiss={handleUpdaterDismiss} />
-      )}
     </div>
   );
 };

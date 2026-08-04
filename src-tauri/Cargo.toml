@@ -1,9 +1,12 @@
 [package]
 name = "karaokedesktop"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Karaoke Pro – A feature-rich desktop karaoke application with YouTube streaming, Party mode, and more."
+authors = ["Duck-dev-05"]
 edition = "2021"
+license = "MIT"
+repository = "https://github.com/Duck-dev-05/karaokedesktop"
+homepage = "https://github.com/Duck-dev-05/karaokedesktop"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

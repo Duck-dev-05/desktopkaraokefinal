@@ -504,27 +504,50 @@ async fn search_youtube_cached(
         }
     }
 
-    let api_key = std::env::var("VITE_YOUTUBE_API_KEY").unwrap_or_default();
-    if api_key.is_empty() {
+    let api_keys_env = std::env::var("VITE_YOUTUBE_API_KEY").unwrap_or_default();
+    if api_keys_env.is_empty() {
         return Err("YouTube API key is missing".to_string());
+    }
+    
+    let api_keys: Vec<&str> = api_keys_env.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+    if api_keys.is_empty() {
+        return Err("No valid YouTube API keys found".to_string());
     }
 
     let client = reqwest::Client::new();
-    let url = format!(
-        "https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q={}&type=video&videoEmbeddable=true&key={}",
-        urlencoding::encode(&query),
-        urlencoding::encode(&api_key)
-    );
-    let res = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    let mut last_error = String::new();
 
-    if res.status().is_success() {
-        let text = res.text().await.map_err(|e| e.to_string())?;
-        let mut cache = state.cache.lock().unwrap();
-        cache.insert(query, text.clone());
-        Ok(text)
-    } else {
-        Err(format!("YouTube API error: {}", res.status()))
+    for api_key in api_keys {
+        let url = format!(
+            "https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q={}&type=video&videoEmbeddable=true&key={}",
+            urlencoding::encode(&query),
+            urlencoding::encode(api_key)
+        );
+        let res = match client.get(&url).send().await {
+            Ok(r) => r,
+            Err(e) => {
+                last_error = e.to_string();
+                continue;
+            }
+        };
+
+        if res.status().is_success() {
+            let text = res.text().await.map_err(|e| e.to_string())?;
+            let mut cache = state.cache.lock().unwrap();
+            cache.insert(query, text.clone());
+            return Ok(text);
+        } else if res.status() == 403 {
+            // Quota exceeded or forbidden, try next key
+            last_error = format!("YouTube API 403 Forbidden with key");
+            continue;
+        } else {
+            // Other errors
+            last_error = format!("YouTube API error: {}", res.status());
+            continue;
+        }
     }
+
+    Err(format!("All API keys failed. Last error: {}", last_error))
 }
 
 #[tauri::command]
