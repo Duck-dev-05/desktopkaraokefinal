@@ -5,8 +5,8 @@ description = "Karaoke Pro – A feature-rich desktop karaoke application with Y
 authors = ["Duck-dev-05"]
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/Duck-dev-05/karaokedesktop"
-homepage = "https://github.com/Duck-dev-05/karaokedesktop"
+repository = "https://github.com/Duck-dev-05/desktopkaraokefinal"
+homepage = "https://github.com/Duck-dev-05/desktopkaraokefinal"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
