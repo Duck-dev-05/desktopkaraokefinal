@@ -49,7 +49,7 @@ jobs:
             ytdlp_out: src-tauri/yt-dlp-x86_64-unknown-linux-gnu
             args: ''
 
-    environment: karaoke desktop
+    environment: env of karaoke desktop
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -123,6 +123,22 @@ jobs:
           echo "Downloaded yt-dlp to ${{ matrix.ytdlp_out }}"
 
       # ── Build and publish ──────────────────────────────────────────────
+      - name: Create .env file for Vite
+        shell: bash
+        run: |
+          cat << 'EOF' > .env
+          VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_GOOGLE_CLIENT_SECRET=${{ secrets.VITE_GOOGLE_CLIENT_SECRET }}
+          VITE_GOOGLE_REDIRECT_URI=${{ secrets.VITE_GOOGLE_REDIRECT_URI }}
+          VITE_YOUTUBE_API_KEY=${{ secrets.VITE_YOUTUBE_API_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_PRICE_ELITE_VIP=${{ secrets.VITE_STRIPE_PRICE_ELITE_VIP }}
+          VITE_STRIPE_PRICE_PREMIUM_TICKETS=${{ secrets.VITE_STRIPE_PRICE_PREMIUM_TICKETS }}
+          VITE_STRIPE_PRICE_VIP_TICKETS=${{ secrets.VITE_STRIPE_PRICE_VIP_TICKETS }}
+          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+          STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+          EOF
+
       - name: Build and release Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
