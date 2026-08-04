@@ -157,6 +157,9 @@
   margin-right: var(--space-2);
   cursor: pointer;
   transition: all var(--transition-base);
+  /* Reset default <button> styles */
+  outline: none;
+  font-family: inherit;
 }
 
 .theater-mode-badge:hover {
@@ -164,9 +167,34 @@
   box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
 }
 
+/* Active state: fullscreen is ON */
+.theater-mode-badge.active {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.6);
+  color: #6ee7b7;
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.35);
+  animation: pulse-border-green 2.5s infinite;
+}
+
+.theater-mode-badge.active svg {
+  color: #10b981;
+  filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.8));
+}
+
+.theater-mode-badge.active:hover {
+  background: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.5);
+}
+
 .theater-mode-badge svg {
   color: var(--primary);
   filter: drop-shadow(0 0 4px rgba(168, 85, 247, 0.8));
+}
+
+@keyframes pulse-border-green {
+  0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); }
+  70%  { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
 @keyframes pulse-border {
@@ -174,6 +202,55 @@
   70% { box-shadow: 0 0 0 6px rgba(168, 85, 247, 0); }
   100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); }
 }
+
+/* HDMI / external device detected but fullscreen not yet on */
+.theater-mode-badge.hdmi-ready {
+  background: rgba(251, 146, 60, 0.18);
+  border-color: rgba(251, 146, 60, 0.55);
+  color: #fed7aa;
+  box-shadow: 0 0 16px rgba(251, 146, 60, 0.3);
+  animation: pulse-border-amber 2s infinite;
+}
+
+.theater-mode-badge.hdmi-ready svg {
+  color: #fb923c;
+  filter: drop-shadow(0 0 4px rgba(251, 146, 60, 0.8));
+}
+
+.theater-mode-badge.hdmi-ready:hover {
+  background: rgba(251, 146, 60, 0.28);
+  box-shadow: 0 0 22px rgba(251, 146, 60, 0.45);
+}
+
+@keyframes pulse-border-amber {
+  0%   { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.5); }
+  70%  { box-shadow: 0 0 0 6px rgba(251, 146, 60, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0); }
+}
+
+/* ─── HDMI Auto-detect Notice Toast ─────────────── */
+.hdmi-notice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: var(--radius-full);
+  color: #6ee7b7;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.25);
+  animation: slide-in-right 0.35s ease;
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+
 
 /* ─── Right ──────────────────────────────────── */
 .topbar-right {

@@ -1,5 +1,5 @@
-import { Bell, Search, User as UserIcon, LogOut, Settings, Cast, MonitorPlay } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { Bell, Search, User as UserIcon, LogOut, Settings, Cast, MonitorPlay, Tv2 } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { openUrl } from '@tauri-apps/plugin-opener';
@@ -16,9 +16,12 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
   const [searchValue, setSearchValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [hdmiNotice, setHdmiNotice] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { isTheaterMode } = useDeviceDetection();
+  const autoFullscreenDone = useRef(false); // prevent repeated auto-trigger
+  const { isTheaterMode, hasMultipleMonitors, hasAmplifier } = useDeviceDetection();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -29,6 +32,55 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Sync fullscreen state with browser/Tauri
+  useEffect(() => {
+    const syncFullscreen = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", syncFullscreen);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreen);
+  }, []);
+
+  // Auto-activate Theater Mode when HDMI / external display is detected
+  useEffect(() => {
+    if (!isTheaterMode) {
+      // Device unplugged — reset so next plug-in triggers again
+      autoFullscreenDone.current = false;
+      return;
+    }
+    if (autoFullscreenDone.current) return; // already triggered this session
+    autoFullscreenDone.current = true;
+
+    const label = hasMultipleMonitors
+      ? 'Màn hình ngoài'
+      : hasAmplifier
+      ? 'Thiết bị âm thanh HDMI'
+      : 'Thiết bị ngoài';
+
+    const activate = async () => {
+      try {
+        if (window.__TAURI_INTERNALS__) {
+          const { getCurrentWindow } = await import('@tauri-apps/api/window');
+          const appWindow = getCurrentWindow();
+          const already = await appWindow.isFullscreen();
+          if (!already) {
+            await appWindow.setFullscreen(true);
+            setIsFullscreen(true);
+          }
+        } else if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+          setIsFullscreen(true);
+        }
+        setHdmiNotice(`🖥️ ${label} detected — Theater Mode ON`);
+        setTimeout(() => setHdmiNotice(null), 4000);
+      } catch (err) {
+        console.error('Auto Theater Mode failed:', err);
+      }
+    };
+
+    activate();
+  }, [isTheaterMode, hasMultipleMonitors, hasAmplifier]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,24 +104,27 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
     }
   };
 
-  const handleTheaterModeClick = async () => {
+  const handleTheaterModeClick = useCallback(async () => {
     try {
       if (window.__TAURI_INTERNALS__) {
         const { getCurrentWindow } = await import('@tauri-apps/api/window');
         const appWindow = getCurrentWindow();
-        const isFullscreen = await appWindow.isFullscreen();
-        await appWindow.setFullscreen(!isFullscreen);
+        const currentlyFullscreen = await appWindow.isFullscreen();
+        await appWindow.setFullscreen(!currentlyFullscreen);
+        setIsFullscreen(!currentlyFullscreen);
       } else {
         if (!document.fullscreenElement) {
           await document.documentElement.requestFullscreen();
+          setIsFullscreen(true);
         } else if (document.exitFullscreen) {
           await document.exitFullscreen();
+          setIsFullscreen(false);
         }
       }
     } catch (err) {
       console.error('Failed to toggle fullscreen:', err);
     }
-  };
+  }, []);
 
   return (
     <header className={`topbar glass ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
@@ -114,16 +169,28 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
 
       {/* Right: Actions */}
       <div className="topbar-right">
-        {isTheaterMode && (
-          <div 
-            className="theater-mode-badge animate-fade-in" 
-            title="Chế độ màn hình lớn đang bật. Nhấn để bật/tắt toàn màn hình."
-            onClick={handleTheaterModeClick}
-          >
-            <MonitorPlay size={16} />
-            <span>Theater Mode</span>
+        {/* HDMI / external device auto-detected notice */}
+        {hdmiNotice && (
+          <div className="hdmi-notice animate-fade-in">
+            <Tv2 size={14} />
+            <span>{hdmiNotice}</span>
           </div>
         )}
+
+        <button
+          className={`theater-mode-badge${isFullscreen ? " active" : ""}${isTheaterMode && !isFullscreen ? " hdmi-ready" : ""}`}
+          title={
+            isFullscreen
+              ? "Thoát chế độ toàn màn hình"
+              : isTheaterMode
+              ? "Thiết bị ngoài đã kết nối — Nhấn để bật Theater Mode"
+              : "Bật Theater Mode (Toàn màn hình)"
+          }
+          onClick={handleTheaterModeClick}
+        >
+          <MonitorPlay size={16} />
+          <span>Theater Mode</span>
+        </button>
 
         <button className="topbar-icon-btn" title="Kết nối màn hình không dây (Win + K)" onClick={handleCastClick}>
           <Cast size={18} />
