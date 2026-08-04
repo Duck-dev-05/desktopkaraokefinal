@@ -748,17 +748,4 @@ h6 { font-size: 1rem; }
   font-size: 1.1rem;
 }
 
-.theater-mode .topbar::after {
-  content: '📺 Theater Mode';
-  position: absolute;
-  right: 12rem;
-  padding: 0.4rem 1rem;
-  background: rgba(147, 51, 234, 0.2);
-  color: #e9d5ff;
-  border: 1px solid rgba(147, 51, 234, 0.5);
-  border-radius: 9999px;
-  font-weight: bold;
-  font-size: 0.9rem;
-  animation: pulse 2s infinite;
-  pointer-events: none;
-}
+

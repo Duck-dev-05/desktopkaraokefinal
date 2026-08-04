@@ -68,8 +68,8 @@ export const searchYoutubePlaylists = async (query: string): Promise<YoutubePlay
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        if (response.status === 403) {
-          console.warn(`YouTube API key ${apiKey.substring(0, 5)}... hit quota limit or forbidden.`);
+        if (response.status === 403 || response.status === 429) {
+          console.warn(`YouTube API key ${apiKey.substring(0, 5)}... hit quota limit or rate limit (${response.status}).`);
           lastError = new Error(`YouTube API Error: ${response.status}`);
           continue; // Try next key
         }

@@ -1,8 +1,9 @@
-import { Bell, Search, User as UserIcon, LogOut, Settings, Cast } from "lucide-react";
+import { Bell, Search, User as UserIcon, LogOut, Settings, Cast, MonitorPlay } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { useDeviceDetection } from "../hooks/useDeviceDetection";
 import "./TopBar.css";
 
 interface TopBarProps {
@@ -17,6 +18,7 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { isTheaterMode } = useDeviceDetection();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -93,6 +95,13 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
 
       {/* Right: Actions */}
       <div className="topbar-right">
+        {isTheaterMode && (
+          <div className="theater-mode-badge animate-fade-in" title="Chế độ màn hình lớn đang bật">
+            <MonitorPlay size={16} />
+            <span>Theater Mode</span>
+          </div>
+        )}
+
         <button className="topbar-icon-btn" title="Kết nối màn hình không dây (Win + K)" onClick={handleCastClick}>
           <Cast size={18} />
         </button>

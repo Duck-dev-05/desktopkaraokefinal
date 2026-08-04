@@ -449,7 +449,9 @@ async fn merge_duet(
 #[tauri::command]
 async fn ai_chat(prompt: String, system_prompt: String) -> Result<String, String> {
     // Check if an API key is provided
-    let api_key = std::env::var("GEMINI_API_KEY").unwrap_or_default();
+    let api_key = option_env!("GEMINI_API_KEY")
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| std::env::var("GEMINI_API_KEY").unwrap_or_default());
 
     if api_key.is_empty() {
         return Err(
@@ -504,7 +506,9 @@ async fn search_youtube_cached(
         }
     }
 
-    let api_keys_env = std::env::var("VITE_YOUTUBE_API_KEY").unwrap_or_default();
+    let api_keys_env = option_env!("VITE_YOUTUBE_API_KEY")
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| std::env::var("VITE_YOUTUBE_API_KEY").unwrap_or_default());
     if api_keys_env.is_empty() {
         return Err("YouTube API key is missing".to_string());
     }
@@ -552,7 +556,9 @@ async fn search_youtube_cached(
 
 #[tauri::command]
 async fn create_subscription(_price_id: String) -> Result<String, String> {
-    let stripe_key = std::env::var("STRIPE_SECRET_KEY").unwrap_or_default();
+    let stripe_key = option_env!("STRIPE_SECRET_KEY")
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| std::env::var("STRIPE_SECRET_KEY").unwrap_or_default());
     if stripe_key.is_empty() {
         return Err(
             "Stripe Key missing. Vui lòng thiết lập biến môi trường STRIPE_SECRET_KEY.".to_string(),
