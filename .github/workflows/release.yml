@@ -49,6 +49,7 @@ jobs:
             ytdlp_out: src-tauri/yt-dlp-x86_64-unknown-linux-gnu
             args: ''
 
+    environment: karaoke desktop
     runs-on: ${{ matrix.platform }}
 
     steps:
