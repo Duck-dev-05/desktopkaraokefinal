@@ -2,8 +2,8 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 
 try {
-  // Get latest git tag (e.g., 'v1.0.0')
-  const tag = execSync('git describe --tags --abbrev=0').toString().trim();
+  // Get latest git tag (prioritize GitHub Actions env var if it exists)
+  const tag = process.env.GITHUB_REF_NAME || execSync('git describe --tags --abbrev=0').toString().trim();
   let version = tag.replace(/^v/, ''); // Remove the 'v' prefix
 
   // Ensure strict semantic versioning (Major.Minor.Patch) for Rust/Cargo compatibility
