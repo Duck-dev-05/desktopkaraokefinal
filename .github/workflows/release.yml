@@ -158,6 +158,6 @@ jobs:
             | 🐧 Linux | `karaoke-pro_x.x.x_amd64.deb` | Debian/Ubuntu package |
 
             See the [CHANGELOG](https://github.com/Duck-dev-05/karaokedesktop/blob/main/CHANGELOG.md) for full release notes.
-          releaseDraft: true   # Set to false to publish immediately
+          releaseDraft: false  # Publish releases immediately when a tag is pushed
           prerelease: false
           args: ${{ matrix.args }}
