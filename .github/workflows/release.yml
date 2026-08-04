@@ -62,23 +62,7 @@ jobs:
           cache: npm
 
       - name: Sync Version from Git Tag
-        shell: bash
-        run: |
-          VERSION=${{ github.ref_name }}
-          VERSION=${VERSION#v}
-          echo "Setting version to $VERSION"
-          node -e "
-            const fs = require('fs');
-            let p = JSON.parse(fs.readFileSync('package.json'));
-            p.version = '$VERSION';
-            fs.writeFileSync('package.json', JSON.stringify(p, null, 2));
-            let t = JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json'));
-            t.version = '$VERSION';
-            fs.writeFileSync('src-tauri/tauri.conf.json', JSON.stringify(t, null, 2));
-            let c = fs.readFileSync('src-tauri/Cargo.toml', 'utf8');
-            c = c.replace(/^version = \".*\"/m, 'version = \"$VERSION\"');
-            fs.writeFileSync('src-tauri/Cargo.toml', c);
-          "
+        run: node scripts/sync-version.js
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
