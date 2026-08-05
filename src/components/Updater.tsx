@@ -23,7 +23,7 @@ interface UpdaterProps {
 interface UpdaterContextValue {
   state: UpdaterState;
   checkUpdates: (isManual?: boolean) => void;
-  installUpdate: (update: Update) => void;
+  installUpdate: (update: Update, shouldRelaunch?: boolean) => void;
   setState: React.Dispatch<React.SetStateAction<UpdaterState>>;
 }
 
@@ -123,7 +123,7 @@ export function useCheckForUpdates() {
     }
   }, []);
 
-  const installUpdate = useCallback(async (update: Update) => {
+  const installUpdate = useCallback(async (update: Update, shouldRelaunch = true) => {
     let downloaded = 0;
     let total = 0;
     setState({ status: "downloading", progress: 0 });
@@ -139,7 +139,11 @@ export function useCheckForUpdates() {
           setState({ status: "installing" });
         }
       });
-      await relaunch();
+      if (shouldRelaunch) {
+        await relaunch();
+      } else {
+        setState({ status: "idle" });
+      }
     } catch (err) {
       setState({ status: "error", message: friendlyError(err) });
     }
@@ -173,12 +177,17 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
   // Auto install if enabled (only applies to Tauri updater)
   useEffect(() => {
     if (settings.autoUpdate && state.status === "available") {
-      installUpdate(state.update);
+      installUpdate(state.update, manual);
     }
-  }, [settings.autoUpdate, state, installUpdate]);
+  }, [settings.autoUpdate, state, installUpdate, manual]);
 
   // Nothing to show while idle / checking silently / up-to-date
   if (state.status === "idle" || state.status === "checking" || state.status === "up-to-date") return null;
+
+  // If autoUpdate is enabled and it's a background check, hide the UI for normal updater flow
+  if (!manual && settings.autoUpdate && (state.status === "available" || state.status === "downloading" || state.status === "installing")) {
+    return null;
+  }
 
   const dismiss = () => {
     setState({ status: "idle" });
@@ -206,7 +215,7 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
               </button>
               <button
                 className="btn-primary"
-                onClick={() => installUpdate(state.update)}
+                onClick={() => installUpdate(state.update, true)}
               >
                 Cập nhật ngay
               </button>
