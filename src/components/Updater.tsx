@@ -90,7 +90,11 @@ export function useCheckForUpdates() {
       console.error("Update check failed:", err);
 
       if (isNoReleaseError(err)) {
-        setState({ status: "up-to-date" });
+        if (isManual) {
+          setState({ status: "error", message: "Không tìm thấy dữ liệu bản cập nhật trên máy chủ (Lỗi 404). Có thể bản release chưa được cấu hình đúng." });
+        } else {
+          setState({ status: "up-to-date" });
+        }
       } else if (isManual) {
         setState({ status: "error", message: friendlyError(err) });
       } else {
