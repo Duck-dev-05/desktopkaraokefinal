@@ -243,7 +243,16 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
             {!collapsed && (
               <div className="user-info animate-fade-in">
                 <span className="user-name">{user.username}</span>
-                <span className="user-role">Singer</span>
+                <span className={`user-role ${
+                  user.role === 'premium' ? 'role-premium' :
+                  user.role === 'studio'  ? 'role-studio'  :
+                  'role-free'
+                }`}>
+                  {user.role === 'premium' ? '⭐ Premium' :
+                   user.role === 'studio'  ? '🎙️ Studio Pro' :
+                   user.role === 'admin'   ? '🛡️ Admin' :
+                   '🎵 Free Plan'}
+                </span>
               </div>
             )}
           </NavLink>

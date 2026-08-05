@@ -21,10 +21,13 @@ const Queue = () => {
 
   return (
     <div className="queue-page animate-fade-in">
-      <div className="queue-header">
-        <div className="title-group">
-          <h1>Tiếp Theo</h1>
-          <span className="queue-count">{queue.length} bài hát trong hàng đợi</span>
+      <div className="page-header">
+        <div className="page-header-icon">
+          <ListMusic size={22} />
+        </div>
+        <div className="page-header-text">
+          <h1 className="page-header-title">Tiếp Theo</h1>
+          <p className="page-header-subtitle">{queue.length} bài hát trong hàng đợi</p>
         </div>
         <button 
           className="btn btn-primary start-party-btn"

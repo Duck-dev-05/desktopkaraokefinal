@@ -42,19 +42,24 @@ const Home = () => {
 
   const renderGrid = (songs: YoutubeVideo[]) => (
     <div className="song-grid">
-      {songs.slice(0, 12).map((song) => (
-
-        <SongCard
-          key={song.id}
-          id={song.id}
-          title={song.title}
-          artist={song.channelTitle}
-          coverUrl={
-            song.thumbnail ||
-            "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=100&auto=format&fit=crop"
-          }
-        />
-      ))}
+      {isLoading ? (
+        Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="skeleton" style={{ aspectRatio: '3/4', borderRadius: '20px' }}></div>
+        ))
+      ) : (
+        songs.slice(0, 12).map((song) => (
+          <SongCard
+            key={song.id}
+            id={song.id}
+            title={song.title}
+            artist={song.channelTitle}
+            coverUrl={
+              song.thumbnail ||
+              "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=100&auto=format&fit=crop"
+            }
+          />
+        ))
+      )}
       {!isLoading && songs.length === 0 && (
         <p className="text-muted" style={{ gridColumn: "1 / -1", textAlign: "center", padding: "2rem 0" }}>
           Hãy cấu hình YouTube API Key trong file .env để tải bài hát.

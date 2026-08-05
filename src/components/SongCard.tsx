@@ -58,7 +58,7 @@ const SongCard = ({ id, title, artist, coverUrl }: SongCardProps) => {
   };
 
   return (
-    <div className="song-card" onClick={handlePlay}>
+    <div className={`song-card ${currentVideo?.id === String(id) ? 'is-playing' : ''}`} onClick={handlePlay}>
       <img src={coverUrl} alt={title} className="card-image" />
       <div className="card-gradient-overlay"></div>
       
