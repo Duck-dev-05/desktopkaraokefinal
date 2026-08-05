@@ -363,6 +363,15 @@ const GlobalPlayer = () => {
     }
 
     try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const mics = devices.filter(device => device.kind === 'audioinput');
+      
+      if (mics.length > 1) {
+        setAvailableMics(mics);
+        setIsMicSelectOpen(true);
+        return;
+      }
+
       await Tone.start();
       
       const constraints = { 
