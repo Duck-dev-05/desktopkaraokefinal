@@ -179,8 +179,8 @@ const Settings = () => {
                 <button
                   className="update-btn update-btn--available"
                   onClick={() => {
-                    import("@tauri-apps/plugin-opener").then(({ open }) => {
-                      open((updateState as any).url);
+                    import("@tauri-apps/plugin-opener").then(({ openUrl }) => {
+                      openUrl((updateState as any).url);
                     });
                   }}
                 >

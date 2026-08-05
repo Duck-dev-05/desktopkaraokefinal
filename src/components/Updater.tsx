@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef, createContext, useContext } from "react";
 import { check, Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
-import { open } from "@tauri-apps/plugin-opener";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { getVersion } from "@tauri-apps/api/app";
 
 type UpdaterState =
@@ -224,7 +224,7 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
               <button
                 className="btn-primary"
                 onClick={() => {
-                  open(state.url);
+                  openUrl(state.url);
                   dismiss();
                 }}
               >
