@@ -637,8 +637,11 @@ const GlobalPlayer = () => {
       return "Judge: " + responseText.trim();
     } catch (err) {
       console.error("AI Judge Error:", err);
-      // Return generic non-mock response if it fails
-      return "Judge: Keep practicing! (AI Offline)";
+      // Return dynamic fallback if AI is unavailable
+      if (finalScore >= 90) return "Giám khảo: Tuyệt vời! Bạn hát hay như ca sĩ thực thụ! 🌟";
+      if (finalScore >= 70) return "Giám khảo: Hát rất hay, cố gắng phát huy nhé! 🎤";
+      if (finalScore >= 50) return "Giám khảo: Khá ổn, bạn có tiềm năng đấy! 👍";
+      return "Giám khảo: Hãy tiếp tục luyện tập thêm nhé! 🎶";
     }
   };
 
