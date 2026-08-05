@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from "react-router-dom";
-import { Home, Compass, ListVideo, Settings } from "lucide-react";
+import { Home, Compass, ListVideo, History as HistoryIcon, Settings } from "lucide-react";
 import { usePlayer } from "../context/PlayerContext";
 
 const BottomNav = () => {
@@ -45,6 +45,14 @@ const BottomNav = () => {
       })}>
         <ListVideo size={20} />
         <span style={{ fontSize: '11px', fontWeight: 500 }}>Hàng Đợi</span>
+      </NavLink>
+
+      <NavLink to="/history" style={({ isActive }) => ({
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', textDecoration: 'none',
+        color: isActive ? '#a855f7' : '#a1a1aa'
+      })}>
+        <HistoryIcon size={20} />
+        <span style={{ fontSize: '11px', fontWeight: 500 }}>Lịch Sử</span>
       </NavLink>
 
       <NavLink to="/settings" style={({ isActive }) => ({

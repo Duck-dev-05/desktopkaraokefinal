@@ -1140,7 +1140,10 @@ const GlobalPlayer = () => {
                     <button
                       key={mic.deviceId}
                       className="mic-option-btn"
-                      onClick={() => connectMic(mic.deviceId)}
+                      onClick={() => {
+                        connectMic(mic.deviceId);
+                        setIsMicSelectOpen(false);
+                      }}
                       title={label}
                     >
                       {label}
@@ -1150,7 +1153,14 @@ const GlobalPlayer = () => {
                 {isMicEnabled && (
                   <button
                     className="mic-option-btn disable-btn"
-                    onClick={() => connectMic('disable')}
+                    onClick={() => {
+                      if (userMediaRef.current) {
+                        userMediaRef.current.close();
+                      }
+                      setIsMicEnabled(false);
+                      notify("Đã tắt micro.");
+                      setIsMicSelectOpen(false);
+                    }}
                   >
                     Tắt Micro
                   </button>
