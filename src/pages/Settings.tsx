@@ -266,7 +266,7 @@ const Settings = () => {
                   }}
                 >
                   <Download size={15} />
-                  Tải từ GitHub v{(updateState as any).version}
+                  Tải từ GitHub {(updateState as any).version}
                 </button>
               )}
 

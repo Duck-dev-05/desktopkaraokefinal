@@ -154,7 +154,7 @@ export function useCheckForUpdates() {
 // Main component – mounts globally in App.tsx for automatic checks
 // ────────────────────────────────────────────────────────────────────
 export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
-  const { state, checkUpdates, installUpdate, setState } = useCheckForUpdates();
+  const { state, checkUpdates, installUpdate, setState } = useUpdaterContext();
   const hasAutoChecked = useRef(false);
   const { settings } = useSettings();
 
@@ -174,10 +174,17 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
 
   // Auto install if enabled
   useEffect(() => {
-    if (settings.autoUpdate && state.status === "available") {
-      installUpdate(state.update);
+    if (settings.autoUpdate) {
+      if (state.status === "available") {
+        installUpdate(state.update);
+      } else if (state.status === "github-available") {
+        import("@tauri-apps/plugin-opener").then(({ openUrl }) => {
+          openUrl(state.url);
+        });
+        setState({ status: "idle" });
+      }
     }
-  }, [settings.autoUpdate, state, installUpdate]);
+  }, [settings.autoUpdate, state, installUpdate, setState]);
 
   // Nothing to show while idle / checking silently / up-to-date
   if (state.status === "idle" || state.status === "checking" || state.status === "up-to-date") return null;
