@@ -210,6 +210,17 @@ const Settings = () => {
           </div>
           <div className="settings-content">
             <div className="setting-row">
+              <label>Tự động cài đặt cập nhật</label>
+              <label className="toggle-switch">
+                <input
+                  type="checkbox"
+                  checked={settings.autoUpdate}
+                  onChange={(e) => updateSettings({ autoUpdate: e.target.checked })}
+                />
+                <span className="slider round"></span>
+              </label>
+            </div>
+            <div className="setting-row">
               <div className="setting-row-label">
                 <label>Phiên bản hiện tại</label>
                 <span className="setting-row-desc">Karaoke Pro v{appVersion || "..."}</span>

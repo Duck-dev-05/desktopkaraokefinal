@@ -9,6 +9,7 @@ export interface AppSettings {
   videoQuality: string;
   showBackgroundVideo: boolean;
   lyricsSync: string;
+  autoUpdate: boolean;
 }
 
 const defaultSettings: AppSettings = {
@@ -20,6 +21,7 @@ const defaultSettings: AppSettings = {
   videoQuality: '1080p',
   showBackgroundVideo: true,
   lyricsSync: 'smooth',
+  autoUpdate: true,
 };
 
 interface SettingsContextType {

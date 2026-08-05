@@ -3,7 +3,7 @@ import { check, Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { getVersion } from "@tauri-apps/api/app";
-
+import { useSettings } from "../context/SettingsContext";
 type UpdaterState =
   | { status: "idle" }
   | { status: "checking" }
@@ -156,6 +156,7 @@ export function useCheckForUpdates() {
 export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
   const { state, checkUpdates, installUpdate, setState } = useCheckForUpdates();
   const hasAutoChecked = useRef(false);
+  const { settings } = useSettings();
 
   // Automatic check on mount (delayed slightly so app can finish loading)
   useEffect(() => {
@@ -170,6 +171,13 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
   useEffect(() => {
     if (manual) checkUpdates(true);
   }, [manual, checkUpdates]);
+
+  // Auto install if enabled
+  useEffect(() => {
+    if (settings.autoUpdate && state.status === "available") {
+      installUpdate(state.update);
+    }
+  }, [settings.autoUpdate, state, installUpdate]);
 
   // Nothing to show while idle / checking silently / up-to-date
   if (state.status === "idle" || state.status === "checking" || state.status === "up-to-date") return null;
