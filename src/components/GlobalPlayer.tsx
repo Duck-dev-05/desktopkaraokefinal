@@ -51,6 +51,17 @@ const GlobalPlayer = () => {
   useEffect(() => {
     isMicEnabledRef.current = isMicEnabled;
   }, [isMicEnabled]);
+
+  // Auto turn off microphone when player closes (no active video)
+  useEffect(() => {
+    if (!currentVideo && isMicEnabled) {
+      if (userMediaRef.current) {
+        userMediaRef.current.close();
+      }
+      setIsMicEnabled(false);
+    }
+  }, [currentVideo, isMicEnabled]);
+
   const [isRecording, setIsRecording] = useState(false);
   const [score, setScore] = useState(0);
   const [_pitchLevel, setPitchLevel] = useState(0);
@@ -65,7 +76,8 @@ const GlobalPlayer = () => {
   const setVocalVol = (val: number) => updateSettings({ micGain: val });
   const beatVol = settings.masterVolume;
   const setBeatVol = (val: number) => updateSettings({ masterVolume: val });
-  const echo = 20; // Hardcoded for now, can be added to settings later if needed.
+  const echo = settings.micEcho;
+  const setEcho = (val: number) => updateSettings({ micEcho: val });
 
   // Lyrics State
   const [currentTime, setCurrentTime] = useState(0);

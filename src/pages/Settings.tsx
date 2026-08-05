@@ -72,7 +72,7 @@ const Settings = () => {
                   type="range"
                   className="settings-slider"
                   min="0"
-                  max="100"
+                  max="150"
                   value={settings.micGain}
                   onChange={(e) => updateSettings({ micGain: parseInt(e.target.value) })}
                   style={{ width: '200px' }}
@@ -148,7 +148,7 @@ const Settings = () => {
                   type="range"
                   className="settings-slider"
                   min="0"
-                  max="100"
+                  max="150"
                   value={settings.masterVolume}
                   onChange={(e) => updateSettings({ masterVolume: parseInt(e.target.value) })}
                   style={{ width: '200px' }}

@@ -10,6 +10,7 @@ export interface AppSettings {
   showBackgroundVideo: boolean;
   lyricsSync: string;
   autoUpdate: boolean;
+  micEcho: number;
 }
 
 const defaultSettings: AppSettings = {
@@ -22,6 +23,7 @@ const defaultSettings: AppSettings = {
   showBackgroundVideo: true,
   lyricsSync: 'smooth',
   autoUpdate: true,
+  micEcho: 20,
 };
 
 interface SettingsContextType {
