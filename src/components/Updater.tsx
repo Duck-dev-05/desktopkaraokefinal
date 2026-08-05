@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback, useRef, createContext, useContext } from "react";
 import { check, Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
+import { open } from "@tauri-apps/plugin-opener";
+import { getVersion } from "@tauri-apps/api/app";
 
 type UpdaterState =
   | { status: "idle" }
@@ -8,7 +10,9 @@ type UpdaterState =
   | { status: "available"; update: Update }
   | { status: "downloading"; progress: number }
   | { status: "installing" }
-  | { status: "error"; message: string };
+  | { status: "error"; message: string }
+  | { status: "up-to-date" }
+  | { status: "github-available"; version: string; url: string };
 
 interface UpdaterProps {
   /** If true, shows feedback even when no update is available (used from Settings) */
@@ -81,21 +85,42 @@ export function useCheckForUpdates() {
       if (update?.available) {
         setState({ status: "available", update });
       } else {
-        setState({ status: "idle" });
+        setState({ status: "up-to-date" });
       }
     } catch (err) {
       console.error("Update check failed:", err);
       if (isManual) {
-        // For "no release JSON" errors during manual check, show friendly message
+        try {
+          const res = await fetch("https://api.github.com/repos/Duck-dev-05/desktopkaraokefinal/releases/latest");
+          if (res.ok) {
+            const data = await res.json();
+            const currentVersion = await getVersion();
+            const latestVersion = data.tag_name.replace(/^v/, '');
+            
+            const parseVer = (v: string) => v.split('.').map(Number);
+            const [cMajor, cMinor, cPatch] = parseVer(currentVersion);
+            const [lMajor, lMinor, lPatch] = parseVer(latestVersion);
+            
+            const isNewer = lMajor > cMajor || 
+                           (lMajor === cMajor && lMinor > cMinor) || 
+                           (lMajor === cMajor && lMinor === cMinor && lPatch > cPatch);
+
+            if (isNewer) {
+              setState({ status: "github-available", version: data.tag_name, url: data.html_url });
+              return;
+            }
+          }
+        } catch (e) {
+          console.error("GitHub fallback failed:", e);
+        }
+      }
+
+      if (isNoReleaseError(err)) {
+        setState({ status: "up-to-date" });
+      } else if (isManual) {
         setState({ status: "error", message: friendlyError(err) });
       } else {
-        // During auto-check: if it's just "no releases yet", stay idle silently
-        if (isNoReleaseError(err)) {
-          setState({ status: "idle" });
-        } else {
-          // Real unexpected error – still silent, but logged
-          setState({ status: "idle" });
-        }
+        setState({ status: "idle" });
       }
     }
   }, []);
@@ -146,8 +171,8 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
     if (manual) checkUpdates(true);
   }, [manual, checkUpdates]);
 
-  // Nothing to show while idle / checking silently
-  if (state.status === "idle" || state.status === "checking") return null;
+  // Nothing to show while idle / checking silently / up-to-date
+  if (state.status === "idle" || state.status === "checking" || state.status === "up-to-date") return null;
 
   const dismiss = () => {
     setState({ status: "idle" });
@@ -178,6 +203,32 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
                 onClick={() => installUpdate(state.update)}
               >
                 Cập nhật ngay
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── GitHub Update available ── */}
+        {state.status === "github-available" && (
+          <>
+            <div className="updater-icon">📦</div>
+            <h2 className="updater-title">Có bản cập nhật mới!</h2>
+            <p className="updater-body">
+              Phiên bản <strong>{state.version}</strong> đã sẵn sàng trên GitHub. 
+              Vui lòng tải xuống và cài đặt thủ công.
+            </p>
+            <div className="updater-actions">
+              <button className="btn-secondary" onClick={dismiss}>
+                Nhắc sau
+              </button>
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  open(state.url);
+                  dismiss();
+                }}
+              >
+                Mở GitHub
               </button>
             </div>
           </>

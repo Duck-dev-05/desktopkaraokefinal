@@ -146,7 +146,7 @@ const Settings = () => {
               </div>
 
               {/* ── Dynamic Update Button ── */}
-              {updateState.status === "idle" && (
+              {(updateState.status === "idle" || updateState.status === "up-to-date") && (
                 <button
                   id="check-updates-btn"
                   className="update-btn update-btn--idle"
@@ -172,6 +172,20 @@ const Settings = () => {
                 >
                   <Download size={15} />
                   Cập nhật v{(updateState as any).update?.version}
+                </button>
+              )}
+
+              {updateState.status === "github-available" && (
+                <button
+                  className="update-btn update-btn--available"
+                  onClick={() => {
+                    import("@tauri-apps/plugin-opener").then(({ open }) => {
+                      open((updateState as any).url);
+                    });
+                  }}
+                >
+                  <Download size={15} />
+                  Tải từ GitHub v{(updateState as any).version}
                 </button>
               )}
 
@@ -211,6 +225,12 @@ const Settings = () => {
                 Ứng dụng tự động kiểm tra cập nhật khi khởi động.
               </p>
             )}
+            {updateState.status === "up-to-date" && (
+              <p className="text-sm" style={{ color: "var(--success, #4ade80)", marginTop: 4 }}>
+                <CheckCircle2 size={13} style={{ verticalAlign: "middle", marginRight: 4 }} />
+                Ứng dụng đang ở phiên bản mới nhất.
+              </p>
+            )}
             {updateState.status === "error" && (
               <p className="text-sm" style={{ color: "var(--error, #f87171)", marginTop: 4 }}>
                 <AlertCircle size={13} style={{ verticalAlign: "middle", marginRight: 4 }} />
@@ -221,6 +241,11 @@ const Settings = () => {
               <p className="text-sm" style={{ color: "var(--success, #4ade80)", marginTop: 4 }}>
                 <CheckCircle2 size={13} style={{ verticalAlign: "middle", marginRight: 4 }} />
                 Có bản cập nhật mới sẵn sàng để cài đặt!
+              </p>
+            )}
+            {updateState.status === "github-available" && (
+              <p className="text-sm" style={{ color: "var(--primary, #a855f7)", marginTop: 4 }}>
+                📦 Có phiên bản mới trên GitHub! Vui lòng tải thủ công.
               </p>
             )}
           </div>
