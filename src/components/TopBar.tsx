@@ -1,9 +1,11 @@
-import { Bell, Search, User as UserIcon, LogOut, Settings, Cast, MonitorPlay, Tv2 } from "lucide-react";
+import { Bell, Search, User as UserIcon, LogOut, Settings, Cast, MonitorPlay, Tv2, Plus } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { searchYoutubeKaraoke, YoutubeVideo } from "../api/youtube";
 import { usePlayer } from "../context/PlayerContext";
+import { useQueue } from "../context/QueueContext";
+import { useParty } from "../context/PartyContext";
 import { Loader2 } from "lucide-react";
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useDeviceDetection } from "../hooks/useDeviceDetection";
@@ -23,6 +25,8 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
   const [isSearching, setIsSearching] = useState(false);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const { playVideo } = usePlayer();
+  const { addToQueue: localAddToQueue } = useQueue();
+  const { roomId, addSongToPartyQueue } = useParty();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [hdmiNotice, setHdmiNotice] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -127,6 +131,19 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
     inputRef.current?.blur();
   };
 
+  const handleQueue = (e: React.MouseEvent, video: YoutubeVideo) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (roomId) {
+      addSongToPartyQueue(video);
+    } else {
+      localAddToQueue(video);
+    }
+    setSearchValue("");
+    setIsFocused(false);
+    inputRef.current?.blur();
+  };
+
   const handleCastClick = async () => {
     try {
       if (window.__TAURI_INTERNALS__) {
@@ -226,6 +243,14 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
                       <div className="topbar-search-item-title">{video.title}</div>
                       <div className="topbar-search-item-channel">{video.channelTitle}</div>
                     </div>
+                    <button 
+                      className="btn icon-btn" 
+                      title="Thêm vào hàng đợi"
+                      onMouseDown={(e) => handleQueue(e, video)}
+                      style={{ padding: '6px', marginLeft: 'auto', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}
+                    >
+                      <Plus size={18} />
+                    </button>
                   </div>
                 ))}
               </div>
