@@ -4,6 +4,7 @@ import { useUpdaterContext } from "../components/Updater";
 import { getVersion } from "@tauri-apps/api/app";
 import { useSettings } from "../context/SettingsContext";
 import { useEffect, useState } from "react";
+import CustomSelect from "../components/CustomSelect";
 import "./Settings.css";
 
 const Settings = () => {
@@ -54,69 +55,69 @@ const Settings = () => {
           <div className="settings-content">
             <div className="setting-row">
               <label>Thiết bị Micro</label>
-              <select 
-                className="settings-select"
-                value={settings.micDevice}
-                onChange={(e) => updateSettings({ micDevice: e.target.value })}
-              >
-                {audioInputs.length > 0 ? (
-                  audioInputs.map((device, idx) => (
-                    <option key={device.deviceId || idx} value={device.deviceId}>
-                      {device.label || `Microphone ${idx + 1}`}
-                    </option>
-                  ))
-                ) : (
-                  <option value="default">Mặc định hệ thống</option>
-                )}
-              </select>
+              <CustomSelect
+                options={audioInputs.length > 0 ? audioInputs.map((device, idx) => ({
+                  value: device.deviceId,
+                  label: device.label || `Microphone ${idx + 1}`
+                })) : [{ value: "default", label: "Mặc định hệ thống" }]}
+                value={settings.micDevice || 'default'}
+                onChange={(val) => updateSettings({ micDevice: val })}
+              />
             </div>
             <div className="setting-row">
               <label>Âm lượng đầu vào (Gain)</label>
-              <input 
-                type="range" 
-                className="settings-slider" 
-                min="0"
-                max="100"
-                value={settings.micGain}
-                onChange={(e) => updateSettings({ micGain: parseInt(e.target.value) })}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Mic size={16} className="text-muted" />
+                <input
+                  type="range"
+                  className="settings-slider"
+                  min="0"
+                  max="100"
+                  value={settings.micGain}
+                  onChange={(e) => updateSettings({ micGain: parseInt(e.target.value) })}
+                  style={{ width: '200px' }}
+                />
+                <span className="font-mono text-sm text-primary" style={{ width: '36px', textAlign: 'right' }}>{settings.micGain}%</span>
+              </div>
             </div>
             <div className="setting-row">
               <label>Khử Tiếng Ồn</label>
               <label className="toggle-switch">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={settings.noiseSuppression}
                   onChange={(e) => updateSettings({ noiseSuppression: e.target.checked })}
                 />
                 <span className="slider round"></span>
               </label>
             </div>
-            
+
             <div className="setting-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <RefreshCw size={16} color="var(--primary)" />
                   Đồng bộ Âm thanh (Audio Latency Calibration)
                 </label>
-                <span className="text-primary font-mono">{audioOffset > 0 ? `+${audioOffset}` : audioOffset}ms</span>
+                <span className="text-primary font-mono" style={{ background: 'rgba(168, 85, 247, 0.15)', padding: '4px 8px', borderRadius: '4px' }}>
+                  {audioOffset > 0 ? `+${audioOffset}` : audioOffset}ms
+                </span>
               </div>
               <p className="text-muted text-sm" style={{ marginBottom: '8px' }}>
                 Điều chỉnh nếu giọng hát của bạn bị trễ (lag) so với nhạc nền. (Thường để -50ms đến -200ms với tai nghe Bluetooth).
               </p>
               <div style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '16px' }}>
-                <span className="text-xs text-muted">-500ms</span>
-                <input 
-                  type="range" 
-                  className="settings-slider" 
-                  min="-500" 
-                  max="500" 
+                <span className="text-xs text-muted font-mono" style={{ width: '46px', textAlign: 'right' }}>-500ms</span>
+                <input
+                  type="range"
+                  className="settings-slider"
+                  min="-500"
+                  max="500"
                   step="10"
                   value={audioOffset}
                   onChange={(e) => setAudioOffset(parseInt(e.target.value))}
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, maxWidth: 'none' }}
                 />
-                <span className="text-xs text-muted">+500ms</span>
+                <span className="text-xs text-muted font-mono" style={{ width: '46px' }}>+500ms</span>
               </div>
             </div>
           </div>
@@ -130,32 +131,30 @@ const Settings = () => {
           <div className="settings-content">
             <div className="setting-row">
               <label>Thiết bị Đầu ra</label>
-              <select 
-                className="settings-select"
-                value={settings.outputDevice}
-                onChange={(e) => updateSettings({ outputDevice: e.target.value })}
-              >
-                {audioOutputs.length > 0 ? (
-                  audioOutputs.map((device, idx) => (
-                    <option key={device.deviceId || idx} value={device.deviceId}>
-                      {device.label || `Speaker ${idx + 1}`}
-                    </option>
-                  ))
-                ) : (
-                  <option value="default">Mặc định hệ thống</option>
-                )}
-              </select>
+              <CustomSelect
+                options={audioOutputs.length > 0 ? audioOutputs.map((device, idx) => ({
+                  value: device.deviceId,
+                  label: device.label || `Speaker ${idx + 1}`
+                })) : [{ value: "default", label: "Mặc định hệ thống" }]}
+                value={settings.outputDevice || 'default'}
+                onChange={(val) => updateSettings({ outputDevice: val })}
+              />
             </div>
             <div className="setting-row">
               <label>Âm lượng Tổng</label>
-              <input 
-                type="range" 
-                className="settings-slider" 
-                min="0"
-                max="100"
-                value={settings.masterVolume}
-                onChange={(e) => updateSettings({ masterVolume: parseInt(e.target.value) })}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Volume2 size={16} className="text-muted" />
+                <input
+                  type="range"
+                  className="settings-slider"
+                  min="0"
+                  max="100"
+                  value={settings.masterVolume}
+                  onChange={(e) => updateSettings({ masterVolume: parseInt(e.target.value) })}
+                  style={{ width: '200px' }}
+                />
+                <span className="font-mono text-sm text-primary" style={{ width: '36px', textAlign: 'right' }}>{settings.masterVolume}%</span>
+              </div>
             </div>
           </div>
         </section>
@@ -168,21 +167,21 @@ const Settings = () => {
           <div className="settings-content">
             <div className="setting-row">
               <label>Chất lượng Video</label>
-              <select 
-                className="settings-select"
+              <CustomSelect
+                options={[
+                  { value: "1080p", label: "1080p (Chất lượng Cao)" },
+                  { value: "720p", label: "720p (Tiêu chuẩn)" },
+                  { value: "480p", label: "480p (Tiết kiệm Dữ liệu)" }
+                ]}
                 value={settings.videoQuality}
-                onChange={(e) => updateSettings({ videoQuality: e.target.value })}
-              >
-                <option value="1080p">1080p (Chất lượng Cao)</option>
-                <option value="720p">720p (Tiêu chuẩn)</option>
-                <option value="480p">480p (Tiết kiệm Dữ liệu)</option>
-              </select>
+                onChange={(val) => updateSettings({ videoQuality: val })}
+              />
             </div>
             <div className="setting-row">
               <label>Hiển thị Video Nền</label>
               <label className="toggle-switch">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={settings.showBackgroundVideo}
                   onChange={(e) => updateSettings({ showBackgroundVideo: e.target.checked })}
                 />
@@ -191,14 +190,14 @@ const Settings = () => {
             </div>
             <div className="setting-row">
               <label>Đồng bộ Lời bài hát</label>
-              <select 
-                className="settings-select"
+              <CustomSelect
+                options={[
+                  { value: "smooth", label: "Chuyển động mượt mà" },
+                  { value: "word", label: "Từng chữ một" }
+                ]}
                 value={settings.lyricsSync}
-                onChange={(e) => updateSettings({ lyricsSync: e.target.value })}
-              >
-                <option value="smooth">Chuyển động mượt mà</option>
-                <option value="word">Từng chữ một</option>
-              </select>
+                onChange={(val) => updateSettings({ lyricsSync: val })}
+              />
             </div>
           </div>
         </section>

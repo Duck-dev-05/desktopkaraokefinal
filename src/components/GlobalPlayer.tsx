@@ -186,41 +186,42 @@ const GlobalPlayer = () => {
       if (isHost) {
         broadcastSync({ type: 'CHANGE_SONG', payload: currentVideo });
       }
-
-      const checkAvailableMics = async () => {
-        try {
-          if (hasAmplifier) {
-            // Do not nag about missing mic, they are using external equipment (e.g. Wedding mixer)
-            return;
-          }
-          const devices = await navigator.mediaDevices.enumerateDevices();
-          const mics = devices.filter(device => device.kind === 'audioinput');
-          if (mics.length > 0) {
-            notify(`Tìm thấy ${mics.length} micro. Nhấp vào biểu tượng micro để bật tính điểm.`);
-          } else {
-            notify("Không tìm thấy micro. Vui lòng kết nối để tính điểm.");
-          }
-        } catch (err) {
-          console.error("Error enumerating devices:", err);
-        }
-      };
-
-      if (!isMicEnabled) {
-        if (autoMicRef.current && !hasAmplifier) {
-          toggleMic();
-        } else {
-          checkAvailableMics();
-        }
-      }
-    } else {
-      if (isMicEnabled) {
-        autoMicRef.current = true;
-        toggleMic();
-      } else {
-        autoMicRef.current = false;
-      }
     }
-  }, [currentVideo]); // Run whenever video changes
+  }, [currentVideo]);
+
+  // Auto-connect microphone globally when settings change or on mount
+  useEffect(() => {
+    const autoConnectMic = async () => {
+      if (hasAmplifier) return;
+      
+      try {
+        await Tone.start();
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const mics = devices.filter(device => device.kind === 'audioinput');
+        
+        if (mics.length > 0) {
+          const constraints = { 
+            audio: {
+              noiseSuppression: settings.noiseSuppression,
+              echoCancellation: settings.noiseSuppression,
+            } 
+          };
+          const stream = await navigator.mediaDevices.getUserMedia(constraints);
+          const deviceId = settings.micDevice === 'default' ? (stream.getAudioTracks()[0].getSettings().deviceId || 'default') : settings.micDevice;
+          stream.getTracks().forEach(t => t.stop());
+          
+          if (userMediaRef.current) {
+            userMediaRef.current.close();
+          }
+          await connectMic(deviceId);
+        }
+      } catch (err) {
+        console.warn("Auto-connect mic failed or ignored", err);
+      }
+    };
+
+    autoConnectMic();
+  }, [settings.micDevice, settings.noiseSuppression, hasAmplifier]);
 
   // Setup Tone.js Pitch Shift
   useEffect(() => {

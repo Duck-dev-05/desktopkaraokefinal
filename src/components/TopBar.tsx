@@ -2,6 +2,9 @@ import { Bell, Search, User as UserIcon, LogOut, Settings, Cast, MonitorPlay, Tv
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { searchYoutubeKaraoke, YoutubeVideo } from "../api/youtube";
+import { usePlayer } from "../context/PlayerContext";
+import { Loader2 } from "lucide-react";
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useDeviceDetection } from "../hooks/useDeviceDetection";
 import "./TopBar.css";
@@ -16,6 +19,10 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
   const [searchValue, setSearchValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<YoutubeVideo[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchDropdownRef = useRef<HTMLDivElement>(null);
+  const { playVideo } = usePlayer();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [hdmiNotice, setHdmiNotice] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -28,10 +35,34 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
+      if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target as Node) && inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setIsFocused(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!searchValue.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const results = await searchYoutubeKaraoke(searchValue);
+        setSearchResults(results.slice(0, 8));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchValue]);
 
   // Sync fullscreen state with browser/Tauri
   useEffect(() => {
@@ -84,11 +115,16 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchValue.trim()) {
-      navigate(`/explore?q=${encodeURIComponent(searchValue.trim())}`);
-      setSearchValue("");
-      inputRef.current?.blur();
+    if (searchResults.length > 0) {
+      handlePlay(searchResults[0]);
     }
+  };
+
+  const handlePlay = (video: YoutubeVideo) => {
+    playVideo(video);
+    setSearchValue("");
+    setIsFocused(false);
+    inputRef.current?.blur();
   };
 
   const handleCastClick = async () => {
@@ -141,31 +177,66 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
       </div>
 
       {/* Center: Search Bar */}
-      <form
-        className={`topbar-search ${isFocused ? "focused" : ""}`}
-        onSubmit={handleSearchSubmit}
-      >
-        <Search size={16} className="topbar-search-icon" />
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="Tìm kiếm bài hát, nghệ sĩ..."
-          className="topbar-search-input"
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-        />
-        {searchValue && (
-          <button
-            type="button"
-            className="topbar-search-clear"
-            onClick={() => setSearchValue("")}
-          >
-            ✕
-          </button>
+      <div className="topbar-search-wrapper" ref={searchDropdownRef}>
+        <form
+          className={`topbar-search ${isFocused ? "focused" : ""}`}
+          onSubmit={handleSearchSubmit}
+        >
+          <Search size={16} className="topbar-search-icon" />
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Tìm kiếm bài hát, nghệ sĩ..."
+            className="topbar-search-input"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+          />
+          {searchValue && (
+            <button
+              type="button"
+              className="topbar-search-clear"
+              onClick={() => setSearchValue("")}
+            >
+              ✕
+            </button>
+          )}
+        </form>
+        
+        {isFocused && searchValue.trim() && (
+          <div className="topbar-search-dropdown animate-fade-in">
+            {isSearching ? (
+              <div className="topbar-search-loading">
+                <Loader2 size={20} className="spin" />
+                <span>Đang tìm kiếm...</span>
+              </div>
+            ) : searchResults.length > 0 ? (
+              <div className="topbar-search-results">
+                {searchResults.map((video) => (
+                  <div 
+                    key={video.id} 
+                    className="topbar-search-item"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handlePlay(video);
+                    }}
+                  >
+                    <img src={video.thumbnail} alt={video.title} />
+                    <div className="topbar-search-item-info">
+                      <div className="topbar-search-item-title">{video.title}</div>
+                      <div className="topbar-search-item-channel">{video.channelTitle}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="topbar-search-empty">
+                Không tìm thấy kết quả nào.
+              </div>
+            )}
+          </div>
         )}
-      </form>
+      </div>
 
       {/* Right: Actions */}
       <div className="topbar-right">
