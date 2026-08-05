@@ -48,6 +48,21 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('appSettings', JSON.stringify(settings));
   }, [settings]);
 
+  // Sync settings across windows/tabs
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'appSettings' && e.newValue) {
+        try {
+          setSettings((prev) => ({ ...prev, ...JSON.parse(e.newValue!) }));
+        } catch (err) {
+          console.error("Failed to parse settings from storage event", err);
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   const updateSettings = (newSettings: Partial<AppSettings>) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));
   };

@@ -22,6 +22,11 @@ import "../pages/SingView_Search_actions.css";
 
 const GlobalPlayer = () => {
   const { currentVideo, playVideo, closePlayer, audioOffset } = usePlayer();
+  const audioOffsetRef = useRef(audioOffset);
+  
+  useEffect(() => {
+    audioOffsetRef.current = audioOffset;
+  }, [audioOffset]);
   const { queue: localQueue, addToQueue: localAddToQueue, removeFromQueue: localRemoveFromQueue, notify } = useQueue();
   const { addToHistory, history } = useHistory();
 
@@ -42,6 +47,10 @@ const GlobalPlayer = () => {
   const { user } = useAuth();
   const { hasAmplifier } = useDeviceDetection();
   const [isMicEnabled, setIsMicEnabled] = useState(false);
+  const isMicEnabledRef = useRef(false);
+  useEffect(() => {
+    isMicEnabledRef.current = isMicEnabled;
+  }, [isMicEnabled]);
   const [isRecording, setIsRecording] = useState(false);
   const [score, setScore] = useState(0);
   const [_pitchLevel, setPitchLevel] = useState(0);
@@ -109,9 +118,10 @@ const GlobalPlayer = () => {
           // state 1 means PLAYING
           if (state === 1) {
             const ytTime = player.getCurrentTime();
+            const targetTime = Math.max(0, ytTime + (audioOffsetRef.current / 1000));
             // If the audio is out of sync by more than 0.25 seconds, snap it to the video time
-            if (Math.abs(audio.currentTime - ytTime) > 0.25) {
-              audio.currentTime = ytTime;
+            if (Math.abs(audio.currentTime - targetTime) > 0.25) {
+              audio.currentTime = targetTime;
             }
           }
         } catch (e) {
@@ -189,10 +199,21 @@ const GlobalPlayer = () => {
     }
   }, [currentVideo]);
 
-  // Auto-connect microphone globally when settings change or on mount
+  // Reconnect microphone globally when settings change, but only if it's currently enabled.
+  // We briefly request permission so devices can be detected.
   useEffect(() => {
-    const autoConnectMic = async () => {
+    const reconnectMic = async () => {
       if (hasAmplifier) return;
+      
+      // Request permission briefly so Settings can detect labels
+      try {
+        const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        tempStream.getTracks().forEach(t => t.stop());
+      } catch (err) {
+        console.warn("Microphone permission check failed", err);
+      }
+
+      if (!isMicEnabledRef.current) return;
       
       try {
         await Tone.start();
@@ -216,11 +237,11 @@ const GlobalPlayer = () => {
           await connectMic(deviceId);
         }
       } catch (err) {
-        console.warn("Auto-connect mic failed or ignored", err);
+        console.warn("Reconnect mic failed or ignored", err);
       }
     };
 
-    autoConnectMic();
+    reconnectMic();
   }, [settings.micDevice, settings.noiseSuppression, hasAmplifier]);
 
   // Setup Tone.js Pitch Shift
