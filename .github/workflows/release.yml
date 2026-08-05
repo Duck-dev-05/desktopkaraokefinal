@@ -1,0 +1,180 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers on tags like v0.1.0, v1.2.3, etc.
+
+jobs:
+  release:
+    permissions:
+      contents: write # Needed to create GitHub Releases
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # ── Windows ─────────────────────────────────────────────────────
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            ffmpeg_src: ffmpeg-static
+            ffmpeg_out: src-tauri/ffmpeg-x86_64-pc-windows-msvc.exe
+            ytdlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe
+            ytdlp_out: src-tauri/yt-dlp-x86_64-pc-windows-msvc.exe
+            args: ''
+
+          # ── macOS (Apple Silicon) ────────────────────────────────────────
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            ffmpeg_src: ffmpeg-static
+            ffmpeg_out: src-tauri/ffmpeg-aarch64-apple-darwin
+            ytdlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos
+            ytdlp_out: src-tauri/yt-dlp-aarch64-apple-darwin
+            args: '--target aarch64-apple-darwin'
+
+          # ── macOS (Intel) ────────────────────────────────────────────────
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+            ffmpeg_src: ffmpeg-static
+            ffmpeg_out: src-tauri/ffmpeg-x86_64-apple-darwin
+            ytdlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos
+            ytdlp_out: src-tauri/yt-dlp-x86_64-apple-darwin
+            args: '--target x86_64-apple-darwin'
+
+          # ── Linux ────────────────────────────────────────────────────────
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            ffmpeg_src: ffmpeg-static
+            ffmpeg_out: src-tauri/ffmpeg-x86_64-unknown-linux-gnu
+            ytdlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux
+            ytdlp_out: src-tauri/yt-dlp-x86_64-unknown-linux-gnu
+            args: ''
+
+    environment: env of karaoke desktop
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Sync Version from Git Tag
+        run: node scripts/sync-version.js
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      # ── Linux system dependencies ──────────────────────────────────────
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Install frontend dependencies
+        run: npm install
+
+      # ── Set up FFmpeg sidecar ──────────────────────────────────────────
+      - name: Setup FFmpeg sidecar (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          $ffmpeg = node -e "const f = require('ffmpeg-static'); process.stdout.write(f)"
+          Copy-Item $ffmpeg "${{ matrix.ffmpeg_out }}"
+          Write-Host "Copied FFmpeg to ${{ matrix.ffmpeg_out }}"
+
+      - name: Setup FFmpeg sidecar (macOS/Linux)
+        if: matrix.platform != 'windows-latest'
+        run: |
+          FFMPEG_PATH=$(node -e "const f = require('ffmpeg-static'); process.stdout.write(f)")
+          cp "$FFMPEG_PATH" "${{ matrix.ffmpeg_out }}"
+          chmod +x "${{ matrix.ffmpeg_out }}"
+          echo "Copied FFmpeg to ${{ matrix.ffmpeg_out }}"
+
+      # ── Set up yt-dlp sidecar ──────────────────────────────────────────
+      - name: Setup yt-dlp sidecar (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri "${{ matrix.ytdlp_url }}" -OutFile "${{ matrix.ytdlp_out }}"
+          Write-Host "Downloaded yt-dlp to ${{ matrix.ytdlp_out }}"
+
+      - name: Setup yt-dlp sidecar (macOS/Linux)
+        if: matrix.platform != 'windows-latest'
+        run: |
+          curl -L "${{ matrix.ytdlp_url }}" -o "${{ matrix.ytdlp_out }}"
+          chmod +x "${{ matrix.ytdlp_out }}"
+          echo "Downloaded yt-dlp to ${{ matrix.ytdlp_out }}"
+
+      # ── Build and publish ──────────────────────────────────────────────
+      - name: Create .env file for Vite
+        shell: bash
+        run: |
+          cat << 'EOF' > .env
+          VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_GOOGLE_CLIENT_SECRET=${{ secrets.VITE_GOOGLE_CLIENT_SECRET }}
+          VITE_GOOGLE_REDIRECT_URI=${{ secrets.VITE_GOOGLE_REDIRECT_URI }}
+          VITE_YOUTUBE_API_KEY=${{ secrets.VITE_YOUTUBE_API_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_PRICE_ELITE_VIP=${{ secrets.VITE_STRIPE_PRICE_ELITE_VIP }}
+          VITE_STRIPE_PRICE_PREMIUM_TICKETS=${{ secrets.VITE_STRIPE_PRICE_PREMIUM_TICKETS }}
+          VITE_STRIPE_PRICE_VIP_TICKETS=${{ secrets.VITE_STRIPE_PRICE_VIP_TICKETS }}
+          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+          STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+          EOF
+
+      - name: Build and release Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Signing keys for auto-updater
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # App environment variables (baked into frontend at build time by Vite)
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+          VITE_GOOGLE_CLIENT_SECRET: ${{ secrets.VITE_GOOGLE_CLIENT_SECRET }}
+          VITE_GOOGLE_REDIRECT_URI: ${{ secrets.VITE_GOOGLE_REDIRECT_URI }}
+          VITE_YOUTUBE_API_KEY: ${{ secrets.VITE_YOUTUBE_API_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_STRIPE_PRICE_ELITE_VIP: ${{ secrets.VITE_STRIPE_PRICE_ELITE_VIP }}
+          VITE_STRIPE_PRICE_PREMIUM_TICKETS: ${{ secrets.VITE_STRIPE_PRICE_PREMIUM_TICKETS }}
+          VITE_STRIPE_PRICE_VIP_TICKETS: ${{ secrets.VITE_STRIPE_PRICE_VIP_TICKETS }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+        with:
+          tagName: ${{ github.ref_name }}           # e.g. v0.1.0
+          releaseName: 'Karaoke Pro ${{ github.ref_name }}'
+          releaseBody: |
+            ## 🎤 Karaoke Pro ${{ github.ref_name }}
+
+            Download the installer for your platform below:
+
+            | Platform | File | Notes |
+            |---|---|---|
+            | <img src="https://cdn.simpleicons.org/windows/0078D6" width="16" /> Windows | `Karaoke Pro_x.x.x_x64-setup.exe` | NSIS Installer (recommended) |
+            | <img src="https://cdn.simpleicons.org/windows/0078D6" width="16" /> Windows | `Karaoke Pro_x.x.x_x64_en-US.msi` | MSI Installer |
+            | <img src="https://cdn.simpleicons.org/apple/999999" width="16" /> macOS (Apple Silicon) | `Karaoke Pro_x.x.x_aarch64.dmg` | For M1/M2/M3 Macs |
+            | <img src="https://cdn.simpleicons.org/apple/999999" width="16" /> macOS (Intel) | `Karaoke Pro_x.x.x_x64.dmg` | For Intel-based Macs |
+            | <img src="https://cdn.simpleicons.org/linux/999999" width="16" /> Linux | `karaoke-pro_x.x.x_amd64.AppImage` | Universal (run directly) |
+            | <img src="https://cdn.simpleicons.org/linux/999999" width="16" /> Linux | `karaoke-pro_x.x.x_amd64.deb` | Debian/Ubuntu package |
+
+            See the [CHANGELOG](https://github.com/Duck-dev-05/karaokedesktop/blob/main/CHANGELOG.md) for full release notes.
+          releaseDraft: false  # Publish releases immediately when a tag is pushed
+          prerelease: false
+          args: ${{ matrix.args }}
