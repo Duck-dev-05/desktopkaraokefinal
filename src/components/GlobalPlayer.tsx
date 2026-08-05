@@ -14,6 +14,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { documentDir, join } from '@tauri-apps/api/path';
 import { writeFile, mkdir } from '@tauri-apps/plugin-fs';
 import { useDeviceDetection } from "../hooks/useDeviceDetection";
+import { useSettings } from "../context/SettingsContext";
 import LyricsDisplay from "./LyricsDisplay";
 import "../pages/SingView.css";
 import "../pages/SingView_Search.css";
@@ -49,10 +50,13 @@ const GlobalPlayer = () => {
   const [isMixerOpen, setIsMixerOpen] = useState(false);
   
   // Live Mixer States
+  const { settings, updateSettings } = useSettings();
   const [mixerTab, setMixerTab] = useState<'volumes' | 'effects'>('volumes');
-  const [vocalVol, setVocalVol] = useState(100);
-  const [beatVol, setBeatVol] = useState(100);
-  const [echo, setEcho] = useState(20);
+  const vocalVol = settings.micGain;
+  const setVocalVol = (val: number) => updateSettings({ micGain: val });
+  const beatVol = settings.masterVolume;
+  const setBeatVol = (val: number) => updateSettings({ masterVolume: val });
+  const echo = 20; // Hardcoded for now, can be added to settings later if needed.
 
   // Lyrics State
   const [currentTime, setCurrentTime] = useState(0);
@@ -142,6 +146,30 @@ const GlobalPlayer = () => {
       vocalVolNodeRef.current.volume.value = vocalVol === 0 ? -100 : 20 * Math.log10(vocalVol / 100);
     }
   }, [vocalVol]);
+
+  useEffect(() => {
+    if (ytPlayerRef.current) {
+      ytPlayerRef.current.setVolume(Math.min(100, beatVol));
+    }
+    const audio = document.getElementById('karaoke-audio') as HTMLMediaElement;
+    if (audio) {
+      audio.volume = Math.max(0, Math.min(1, beatVol / 100));
+    }
+  }, [beatVol]);
+
+  useEffect(() => {
+    const audio = document.getElementById('karaoke-audio') as HTMLMediaElement;
+    if (audio && (audio as any).setSinkId) {
+      (audio as any).setSinkId(settings.outputDevice === 'default' ? '' : settings.outputDevice).catch(console.error);
+    }
+  }, [settings.outputDevice]);
+
+  useEffect(() => {
+    if (ytPlayerRef.current && ytPlayerRef.current.setPlaybackQuality) {
+      const q = settings.videoQuality === '1080p' ? 'hd1080' : settings.videoQuality === '720p' ? 'hd720' : 'large';
+      ytPlayerRef.current.setPlaybackQuality(q);
+    }
+  }, [settings.videoQuality]);
 
   useEffect(() => {
     if (echoNodeRef.current) {
@@ -303,8 +331,14 @@ const GlobalPlayer = () => {
     try {
       await Tone.start();
       
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const deviceId = stream.getAudioTracks()[0].getSettings().deviceId || 'default';
+      const constraints = { 
+        audio: {
+          noiseSuppression: settings.noiseSuppression,
+          echoCancellation: settings.noiseSuppression,
+        } 
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      const deviceId = settings.micDevice === 'default' ? (stream.getAudioTracks()[0].getSettings().deviceId || 'default') : settings.micDevice;
       stream.getTracks().forEach(t => t.stop());
       
       await connectMic(deviceId);
@@ -320,7 +354,9 @@ const GlobalPlayer = () => {
       
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          deviceId: { exact: deviceId }
+          deviceId: { exact: deviceId },
+          noiseSuppression: settings.noiseSuppression,
+          echoCancellation: settings.noiseSuppression
         }
       });
       
@@ -689,7 +725,8 @@ const GlobalPlayer = () => {
       disablekb: 1,
       modestbranding: 1,
       fs: 0,
-      mute: 1
+      mute: 1,
+      vq: settings.videoQuality === '1080p' ? 'hd1080' : settings.videoQuality === '720p' ? 'hd720' : 'large'
     },
   };
 
@@ -763,7 +800,7 @@ const GlobalPlayer = () => {
             crossOrigin="anonymous"
             autoPlay
             controls={false}
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: settings.showBackgroundVideo ? 1 : 0 }}
             onEnded={() => handleVideoEnd({} as any)}
             onPlay={() => Tone.start()}
           />
@@ -780,7 +817,7 @@ const GlobalPlayer = () => {
               onPlay={handleVideoPlay}
               onPause={handleVideoPause}
               onStateChange={handleVideoStateChange}
-              style={{ width: '100%', height: '100%' }}
+              style={{ width: '100%', height: '100%', opacity: settings.showBackgroundVideo ? 1 : 0 }}
               iframeClassName="youtube-iframe-full"
             />
             <audio

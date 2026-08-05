@@ -2,16 +2,36 @@ import { Mic, Volume2, Monitor, RefreshCw, CheckCircle2, AlertCircle, Download, 
 import { usePlayer } from "../context/PlayerContext";
 import { useUpdaterContext } from "../components/Updater";
 import { getVersion } from "@tauri-apps/api/app";
+import { useSettings } from "../context/SettingsContext";
 import { useEffect, useState } from "react";
 import "./Settings.css";
 
 const Settings = () => {
   const { audioOffset, setAudioOffset } = usePlayer();
   const { state: updateState, checkUpdates, installUpdate } = useUpdaterContext();
+  const { settings, updateSettings } = useSettings();
   const [appVersion, setAppVersion] = useState<string>("");
+  const [audioInputs, setAudioInputs] = useState<MediaDeviceInfo[]>([]);
+  const [audioOutputs, setAudioOutputs] = useState<MediaDeviceInfo[]>([]);
 
   useEffect(() => {
     getVersion().then(setAppVersion).catch(console.error);
+
+    const fetchDevices = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        setAudioInputs(devices.filter(d => d.kind === 'audioinput'));
+        setAudioOutputs(devices.filter(d => d.kind === 'audiooutput'));
+      } catch (err) {
+        console.error("Error fetching media devices:", err);
+      }
+    };
+
+    fetchDevices();
+    navigator.mediaDevices.addEventListener('devicechange', fetchDevices);
+    return () => {
+      navigator.mediaDevices.removeEventListener('devicechange', fetchDevices);
+    };
   }, []);
 
   const handleCheckUpdates = () => {
@@ -34,20 +54,41 @@ const Settings = () => {
           <div className="settings-content">
             <div className="setting-row">
               <label>Thiết bị Micro</label>
-              <select className="settings-select">
-                <option>Default - MacBook Pro Microphone</option>
-                <option>External USB Mic (Shure SM7B)</option>
-                <option>AirPods Pro</option>
+              <select 
+                className="settings-select"
+                value={settings.micDevice}
+                onChange={(e) => updateSettings({ micDevice: e.target.value })}
+              >
+                {audioInputs.length > 0 ? (
+                  audioInputs.map((device, idx) => (
+                    <option key={device.deviceId || idx} value={device.deviceId}>
+                      {device.label || `Microphone ${idx + 1}`}
+                    </option>
+                  ))
+                ) : (
+                  <option value="default">Mặc định hệ thống</option>
+                )}
               </select>
             </div>
             <div className="setting-row">
               <label>Âm lượng đầu vào (Gain)</label>
-              <input type="range" className="settings-slider" defaultValue="75" />
+              <input 
+                type="range" 
+                className="settings-slider" 
+                min="0"
+                max="100"
+                value={settings.micGain}
+                onChange={(e) => updateSettings({ micGain: parseInt(e.target.value) })}
+              />
             </div>
             <div className="setting-row">
               <label>Khử Tiếng Ồn</label>
               <label className="toggle-switch">
-                <input type="checkbox" defaultChecked />
+                <input 
+                  type="checkbox" 
+                  checked={settings.noiseSuppression}
+                  onChange={(e) => updateSettings({ noiseSuppression: e.target.checked })}
+                />
                 <span className="slider round"></span>
               </label>
             </div>
@@ -89,14 +130,32 @@ const Settings = () => {
           <div className="settings-content">
             <div className="setting-row">
               <label>Thiết bị Đầu ra</label>
-              <select className="settings-select">
-                <option>Default - Built-in Speakers</option>
-                <option>Studio Monitors (Scarlett 2i2)</option>
+              <select 
+                className="settings-select"
+                value={settings.outputDevice}
+                onChange={(e) => updateSettings({ outputDevice: e.target.value })}
+              >
+                {audioOutputs.length > 0 ? (
+                  audioOutputs.map((device, idx) => (
+                    <option key={device.deviceId || idx} value={device.deviceId}>
+                      {device.label || `Speaker ${idx + 1}`}
+                    </option>
+                  ))
+                ) : (
+                  <option value="default">Mặc định hệ thống</option>
+                )}
               </select>
             </div>
             <div className="setting-row">
               <label>Âm lượng Tổng</label>
-              <input type="range" className="settings-slider" defaultValue="100" />
+              <input 
+                type="range" 
+                className="settings-slider" 
+                min="0"
+                max="100"
+                value={settings.masterVolume}
+                onChange={(e) => updateSettings({ masterVolume: parseInt(e.target.value) })}
+              />
             </div>
           </div>
         </section>
@@ -109,24 +168,36 @@ const Settings = () => {
           <div className="settings-content">
             <div className="setting-row">
               <label>Chất lượng Video</label>
-              <select className="settings-select">
-                <option>1080p (Chất lượng Cao)</option>
-                <option>720p (Tiêu chuẩn)</option>
-                <option>480p (Tiết kiệm Dữ liệu)</option>
+              <select 
+                className="settings-select"
+                value={settings.videoQuality}
+                onChange={(e) => updateSettings({ videoQuality: e.target.value })}
+              >
+                <option value="1080p">1080p (Chất lượng Cao)</option>
+                <option value="720p">720p (Tiêu chuẩn)</option>
+                <option value="480p">480p (Tiết kiệm Dữ liệu)</option>
               </select>
             </div>
             <div className="setting-row">
               <label>Hiển thị Video Nền</label>
               <label className="toggle-switch">
-                <input type="checkbox" defaultChecked />
+                <input 
+                  type="checkbox" 
+                  checked={settings.showBackgroundVideo}
+                  onChange={(e) => updateSettings({ showBackgroundVideo: e.target.checked })}
+                />
                 <span className="slider round"></span>
               </label>
             </div>
             <div className="setting-row">
               <label>Đồng bộ Lời bài hát</label>
-              <select className="settings-select">
-                <option>Chuyển động mượt mà</option>
-                <option>Từng chữ một</option>
+              <select 
+                className="settings-select"
+                value={settings.lyricsSync}
+                onChange={(e) => updateSettings({ lyricsSync: e.target.value })}
+              >
+                <option value="smooth">Chuyển động mượt mà</option>
+                <option value="word">Từng chữ một</option>
               </select>
             </div>
           </div>

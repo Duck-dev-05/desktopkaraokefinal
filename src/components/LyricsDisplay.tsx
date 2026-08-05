@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useSettings } from '../context/SettingsContext';
 import './LyricsDisplay.css';
 
 interface LrcLine {
@@ -35,6 +36,7 @@ const parseLrc = (lrcString: string): LrcLine[] => {
 };
 
 const LyricsDisplay: React.FC<LyricsDisplayProps> = ({ lrcText, currentTime }) => {
+  const { settings } = useSettings();
   const [lyrics, setLyrics] = useState<LrcLine[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -88,7 +90,7 @@ const LyricsDisplay: React.FC<LyricsDisplayProps> = ({ lrcText, currentTime }) =
   }
 
   return (
-    <div className="lyrics-display-container" ref={containerRef}>
+    <div className={`lyrics-display-container sync-mode-${settings.lyricsSync}`} ref={containerRef}>
       <div className="lyrics-display-spacer" />
       {lyrics.map((line, index) => {
         const isActive = index === activeIndex;
