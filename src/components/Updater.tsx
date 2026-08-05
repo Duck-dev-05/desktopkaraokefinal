@@ -89,30 +89,28 @@ export function useCheckForUpdates() {
       }
     } catch (err) {
       console.error("Update check failed:", err);
-      if (isManual) {
-        try {
-          const res = await fetch("https://api.github.com/repos/Duck-dev-05/desktopkaraokefinal/releases/latest");
-          if (res.ok) {
-            const data = await res.json();
-            const currentVersion = await getVersion();
-            const latestVersion = data.tag_name.replace(/^v/, '');
-            
-            const parseVer = (v: string) => v.split('.').map(Number);
-            const [cMajor, cMinor, cPatch] = parseVer(currentVersion);
-            const [lMajor, lMinor, lPatch] = parseVer(latestVersion);
-            
-            const isNewer = lMajor > cMajor || 
-                           (lMajor === cMajor && lMinor > cMinor) || 
-                           (lMajor === cMajor && lMinor === cMinor && lPatch > cPatch);
+      try {
+        const res = await fetch("https://api.github.com/repos/Duck-dev-05/desktopkaraokefinal/releases/latest");
+        if (res.ok) {
+          const data = await res.json();
+          const currentVersion = await getVersion();
+          const latestVersion = data.tag_name.replace(/^v/, '');
+          
+          const parseVer = (v: string) => v.split('.').map(Number);
+          const [cMajor, cMinor, cPatch] = parseVer(currentVersion);
+          const [lMajor, lMinor, lPatch] = parseVer(latestVersion);
+          
+          const isNewer = lMajor > cMajor || 
+                         (lMajor === cMajor && lMinor > cMinor) || 
+                         (lMajor === cMajor && lMinor === cMinor && lPatch > cPatch);
 
-            if (isNewer) {
-              setState({ status: "github-available", version: data.tag_name, url: data.html_url });
-              return;
-            }
+          if (isNewer) {
+            setState({ status: "github-available", version: data.tag_name, url: data.html_url });
+            return;
           }
-        } catch (e) {
-          console.error("GitHub fallback failed:", e);
         }
+      } catch (e) {
+        console.error("GitHub fallback failed:", e);
       }
 
       if (isNoReleaseError(err)) {
@@ -172,19 +170,12 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
     if (manual) checkUpdates(true);
   }, [manual, checkUpdates]);
 
-  // Auto install if enabled
+  // Auto install if enabled (only applies to Tauri updater)
   useEffect(() => {
-    if (settings.autoUpdate) {
-      if (state.status === "available") {
-        installUpdate(state.update);
-      } else if (state.status === "github-available") {
-        import("@tauri-apps/plugin-opener").then(({ openUrl }) => {
-          openUrl(state.url);
-        });
-        setState({ status: "idle" });
-      }
+    if (settings.autoUpdate && state.status === "available") {
+      installUpdate(state.update);
     }
-  }, [settings.autoUpdate, state, installUpdate, setState]);
+  }, [settings.autoUpdate, state, installUpdate]);
 
   // Nothing to show while idle / checking silently / up-to-date
   if (state.status === "idle" || state.status === "checking" || state.status === "up-to-date") return null;
@@ -243,7 +234,7 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
                   dismiss();
                 }}
               >
-                Mở GitHub
+                Tải xuống
               </button>
             </div>
           </>
