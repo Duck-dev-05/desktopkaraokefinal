@@ -7,12 +7,11 @@ import { useSettings } from "../context/SettingsContext";
 type UpdaterState =
   | { status: "idle" }
   | { status: "checking" }
-  | { status: "available"; update: Update }
+  | { status: "available"; update: Update; isManual: boolean }
   | { status: "downloading"; progress: number }
   | { status: "installing" }
   | { status: "error"; message: string }
-  | { status: "up-to-date" }
-  | { status: "github-available"; version: string; url: string };
+  | { status: "up-to-date" };
 
 interface UpdaterProps {
   /** If true, shows feedback even when no update is available (used from Settings) */
@@ -83,35 +82,12 @@ export function useCheckForUpdates() {
     try {
       const update = await check();
       if (update?.available) {
-        setState({ status: "available", update });
+        setState({ status: "available", update, isManual });
       } else {
         setState({ status: "up-to-date" });
       }
     } catch (err) {
       console.error("Update check failed:", err);
-      try {
-        const res = await fetch("https://api.github.com/repos/Duck-dev-05/desktopkaraokefinal/releases/latest");
-        if (res.ok) {
-          const data = await res.json();
-          const currentVersion = await getVersion();
-          const latestVersion = data.tag_name.replace(/^v/, '');
-          
-          const parseVer = (v: string) => v.split('.').map(Number);
-          const [cMajor, cMinor, cPatch] = parseVer(currentVersion);
-          const [lMajor, lMinor, lPatch] = parseVer(latestVersion);
-          
-          const isNewer = lMajor > cMajor || 
-                         (lMajor === cMajor && lMinor > cMinor) || 
-                         (lMajor === cMajor && lMinor === cMinor && lPatch > cPatch);
-
-          if (isNewer) {
-            setState({ status: "github-available", version: data.tag_name, url: data.html_url });
-            return;
-          }
-        }
-      } catch (e) {
-        console.error("GitHub fallback failed:", e);
-      }
 
       if (isNoReleaseError(err)) {
         setState({ status: "up-to-date" });
@@ -177,9 +153,9 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
   // Auto install if enabled (only applies to Tauri updater)
   useEffect(() => {
     if (settings.autoUpdate && state.status === "available") {
-      installUpdate(state.update, manual);
+      installUpdate(state.update, state.isManual);
     }
-  }, [settings.autoUpdate, state, installUpdate, manual]);
+  }, [settings.autoUpdate, state, installUpdate]);
 
   // Nothing to show while idle / checking silently / up-to-date
   if (state.status === "idle" || state.status === "checking" || state.status === "up-to-date") return null;
@@ -223,31 +199,7 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
           </>
         )}
 
-        {/* ── GitHub Update available ── */}
-        {state.status === "github-available" && (
-          <>
-            <div className="updater-icon">📦</div>
-            <h2 className="updater-title">Có bản cập nhật mới!</h2>
-            <p className="updater-body">
-              Phiên bản <strong>{state.version}</strong> đã sẵn sàng trên GitHub. 
-              Vui lòng tải xuống và cài đặt thủ công.
-            </p>
-            <div className="updater-actions">
-              <button className="btn-secondary" onClick={dismiss}>
-                Nhắc sau
-              </button>
-              <button
-                className="btn-primary"
-                onClick={() => {
-                  openUrl(state.url);
-                  dismiss();
-                }}
-              >
-                Tải xuống
-              </button>
-            </div>
-          </>
-        )}
+
 
         {/* ── Downloading ── */}
         {state.status === "downloading" && (

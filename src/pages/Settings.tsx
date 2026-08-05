@@ -256,19 +256,7 @@ const Settings = () => {
                 </button>
               )}
 
-              {updateState.status === "github-available" && (
-                <button
-                  className="update-btn update-btn--available"
-                  onClick={() => {
-                    import("@tauri-apps/plugin-opener").then(({ openUrl }) => {
-                      openUrl((updateState as any).url);
-                    });
-                  }}
-                >
-                  <Download size={15} />
-                  Tải từ GitHub {(updateState as any).version}
-                </button>
-              )}
+
 
               {updateState.status === "downloading" && (
                 <div className="update-progress-inline">

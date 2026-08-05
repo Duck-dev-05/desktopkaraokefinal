@@ -177,4 +177,5 @@ jobs:
             See the [CHANGELOG](https://github.com/Duck-dev-05/karaokedesktop/blob/main/CHANGELOG.md) for full release notes.
           releaseDraft: false  # Publish releases immediately when a tag is pushed
           prerelease: false
+          includeUpdaterJson: true
           args: ${{ matrix.args }}
