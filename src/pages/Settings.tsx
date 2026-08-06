@@ -1,4 +1,4 @@
-import { Mic, Volume2, Monitor, RefreshCw, CheckCircle2, AlertCircle, Download, Loader2 } from "lucide-react";
+import { Mic, Volume2, Monitor, RefreshCw, CheckCircle2, AlertCircle, Download, Loader2, Play } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { usePlayer } from "../context/PlayerContext";
 import { useUpdaterContext } from "../components/Updater";
@@ -25,6 +25,8 @@ const Settings = () => {
   const [audioInputs,  setAudioInputs]  = useState<MediaDeviceInfo[]>([]);
   const [audioOutputs, setAudioOutputs] = useState<MediaDeviceInfo[]>([]);
   const [activeSection, setActiveSection] = useState<string>("audio-input");
+  const [micVolume, setMicVolume] = useState<number>(0);
+  const [isPlayingTest, setIsPlayingTest] = useState(false);
 
   // Section refs for scroll-spy
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
@@ -34,6 +36,14 @@ const Settings = () => {
 
     const fetchDevices = async () => {
       try {
+        // Request permissions temporarily to ensure device labels are populated
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          stream.getTracks().forEach(track => track.stop());
+        } catch (e) {
+          console.warn("Could not get audio permissions for real labels", e);
+        }
+
         const devices = await navigator.mediaDevices.enumerateDevices();
         setAudioInputs(devices.filter(d => d.kind === "audioinput"));
         setAudioOutputs(devices.filter(d => d.kind === "audiooutput"));
@@ -46,6 +56,91 @@ const Settings = () => {
     navigator.mediaDevices.addEventListener("devicechange", fetchDevices);
     return () => navigator.mediaDevices.removeEventListener("devicechange", fetchDevices);
   }, []);
+
+  // Real-time microphone volume visualizer
+  useEffect(() => {
+    if (!settings.micDevice) return;
+
+    let audioContext: AudioContext;
+    let analyser: AnalyserNode;
+    let microphone: MediaStreamAudioSourceNode;
+    let animationFrame: number;
+    let stream: MediaStream;
+
+    const startMeter = async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: { deviceId: settings.micDevice === "default" ? undefined : { exact: settings.micDevice } }
+        });
+        audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        microphone = audioContext.createMediaStreamSource(stream);
+        microphone.connect(analyser);
+
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        
+        const updateMeter = () => {
+          analyser.getByteFrequencyData(dataArray);
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+          }
+          const average = sum / dataArray.length;
+          // Scale roughly to 0-100%
+          setMicVolume(Math.min(100, (average / 128) * 100));
+          animationFrame = requestAnimationFrame(updateMeter);
+        };
+        updateMeter();
+      } catch (err) {
+        console.error("Error starting mic meter:", err);
+      }
+    };
+
+    startMeter();
+
+    return () => {
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      if (audioContext && audioContext.state !== "closed") audioContext.close();
+    };
+  }, [settings.micDevice]);
+
+  const testAudioOutput = () => {
+    if (isPlayingTest) return;
+    setIsPlayingTest(true);
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      // Apply master volume
+      gainNode.gain.value = (settings.masterVolume / 100) * 0.1; // * 0.1 so it's not too loud
+      
+      // Attempt to route to specific output device if supported (Chrome/Edge only)
+      if (settings.outputDevice && settings.outputDevice !== "default" && typeof (audioCtx as any).setSinkId === "function") {
+        (audioCtx as any).setSinkId(settings.outputDevice).catch(console.error);
+      }
+
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.5);
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      oscillator.start();
+      gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.8);
+      
+      setTimeout(() => {
+        oscillator.stop();
+        setIsPlayingTest(false);
+      }, 1000);
+    } catch (e) {
+      console.error(e);
+      setIsPlayingTest(false);
+    }
+  };
 
   // Scroll-spy: update active nav item when scrolling
   useEffect(() => {
@@ -122,14 +217,32 @@ const Settings = () => {
                 <span className="setting-row-label">Thiết bị Micro</span>
                 <span className="setting-row-desc">Chọn microphone để thu âm giọng hát.</span>
               </div>
-              <CustomSelect
-                options={audioInputs.length > 0
-                  ? audioInputs.map((device, idx) => ({ value: device.deviceId, label: device.label || `Microphone ${idx + 1}` }))
-                  : [{ value: "default", label: "Mặc định hệ thống" }]
-                }
-                value={settings.micDevice || "default"}
-                onChange={(val) => updateSettings({ micDevice: val })}
-              />
+              <div style={{ width: "280px", flexShrink: 0 }}>
+                <CustomSelect
+                  options={audioInputs.length > 0
+                    ? audioInputs.map((device, idx) => ({ value: device.deviceId, label: device.label || `Microphone ${idx + 1}` }))
+                    : [{ value: "default", label: "Mặc định hệ thống" }]
+                  }
+                  value={settings.micDevice || "default"}
+                  onChange={(val) => updateSettings({ micDevice: val })}
+                />
+              </div>
+            </div>
+
+            {/* Live Mic Volume Meter */}
+            <div className="setting-row">
+              <div className="setting-row-info">
+                <span className="setting-row-label">Tín hiệu Đầu vào</span>
+                <span className="setting-row-desc">Kiểm tra âm lượng thực tế của micro.</span>
+              </div>
+              <div style={{ width: "280px", flexShrink: 0, paddingRight: "16px", display: "flex", alignItems: "center" }}>
+                <div className="update-progress-bar" style={{ width: "100%" }}>
+                  <div 
+                    className="update-progress-fill" 
+                    style={{ width: `${micVolume}%`, transition: 'width 50ms ease-out' }}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Mic Gain slider */}
@@ -225,14 +338,34 @@ const Settings = () => {
                 <span className="setting-row-label">Thiết bị Đầu ra</span>
                 <span className="setting-row-desc">Loa hoặc tai nghe để phát nhạc và giọng hát.</span>
               </div>
-              <CustomSelect
-                options={audioOutputs.length > 0
-                  ? audioOutputs.map((device, idx) => ({ value: device.deviceId, label: device.label || `Speaker ${idx + 1}` }))
-                  : [{ value: "default", label: "Mặc định hệ thống" }]
-                }
-                value={settings.outputDevice || "default"}
-                onChange={(val) => updateSettings({ outputDevice: val })}
-              />
+              <div style={{ width: "280px", flexShrink: 0 }}>
+                <CustomSelect
+                  options={audioOutputs.length > 0
+                    ? audioOutputs.map((device, idx) => ({ value: device.deviceId, label: device.label || `Speaker ${idx + 1}` }))
+                    : [{ value: "default", label: "Mặc định hệ thống" }]
+                  }
+                  value={settings.outputDevice || "default"}
+                  onChange={(val) => updateSettings({ outputDevice: val })}
+                />
+              </div>
+            </div>
+
+            {/* Test Audio Button */}
+            <div className="setting-row">
+              <div className="setting-row-info">
+                <span className="setting-row-label">Thử Âm thanh</span>
+                <span className="setting-row-desc">Phát một âm thanh ngắn để kiểm tra loa.</span>
+              </div>
+              <div style={{ width: "280px", flexShrink: 0, display: "flex", justifyContent: "flex-end", paddingRight: "16px" }}>
+                <button 
+                  className="update-btn update-btn--idle" 
+                  onClick={testAudioOutput}
+                  disabled={isPlayingTest}
+                >
+                  <Play size={15} />
+                  {isPlayingTest ? "Đang phát..." : "Phát Thử"}
+                </button>
+              </div>
             </div>
 
             {/* Master Volume slider */}
@@ -277,15 +410,17 @@ const Settings = () => {
                 <span className="setting-row-label">Chất lượng Video</span>
                 <span className="setting-row-desc">Độ phân giải phát video YouTube karaoke.</span>
               </div>
-              <CustomSelect
-                options={[
-                  { value: "1080p", label: "1080p — Chất lượng Cao" },
-                  { value: "720p",  label: "720p — Tiêu chuẩn" },
-                  { value: "480p",  label: "480p — Tiết kiệm Dữ liệu" },
-                ]}
-                value={settings.videoQuality}
-                onChange={(val) => updateSettings({ videoQuality: val })}
-              />
+              <div style={{ width: "280px", flexShrink: 0 }}>
+                <CustomSelect
+                  options={[
+                    { value: "1080p", label: "1080p — Chất lượng Cao" },
+                    { value: "720p",  label: "720p — Tiêu chuẩn" },
+                    { value: "480p",  label: "480p — Tiết kiệm Dữ liệu" },
+                  ]}
+                  value={settings.videoQuality}
+                  onChange={(val) => updateSettings({ videoQuality: val })}
+                />
+              </div>
             </div>
 
             {/* Background Video */}
@@ -310,14 +445,16 @@ const Settings = () => {
                 <span className="setting-row-label">Đồng bộ Lời bài hát</span>
                 <span className="setting-row-desc">Kiểu hiển thị và chuyển đổi lời theo nhịp nhạc.</span>
               </div>
-              <CustomSelect
-                options={[
-                  { value: "smooth", label: "Chuyển động mượt mà" },
-                  { value: "word",   label: "Từng chữ một" },
-                ]}
-                value={settings.lyricsSync}
-                onChange={(val) => updateSettings({ lyricsSync: val })}
-              />
+              <div style={{ width: "280px", flexShrink: 0 }}>
+                <CustomSelect
+                  options={[
+                    { value: "smooth", label: "Chuyển động mượt mà" },
+                    { value: "word",   label: "Từng chữ một" },
+                  ]}
+                  value={settings.lyricsSync}
+                  onChange={(val) => updateSettings({ lyricsSync: val })}
+                />
+              </div>
             </div>
           </div>
         </section>
