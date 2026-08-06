@@ -61,6 +61,9 @@ async fn download_and_install_update(app: tauri::AppHandle, url: String) -> Resu
         }
     }
     
+    // Drop (close) the file to release the write lock on Windows
+    drop(file);
+    
     #[cfg(target_os = "windows")]
     {
         std::process::Command::new(&installer_path)
