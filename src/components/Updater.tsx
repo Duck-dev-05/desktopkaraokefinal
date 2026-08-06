@@ -5,6 +5,10 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { getVersion } from "@tauri-apps/api/app";
 import { useSettings } from "../context/SettingsContext";
 import { Rocket, Package, ArrowDownToLine, Loader2, AlertTriangle, X } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+
 type UpdaterState =
   | { status: "idle" }
   | { status: "checking" }
@@ -227,7 +231,11 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
               Cập nhật ngay để tận hưởng tính năng mới và cải tiến.
             </p>
             {state.update.body && (
-              <pre className="updater-notes">{state.update.body}</pre>
+              <div className="updater-notes markdown-body">
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                  {state.update.body}
+                </ReactMarkdown>
+              </div>
             )}
             <div className="updater-actions">
               <button className="btn-secondary updater-btn" onClick={dismiss}>
@@ -259,7 +267,11 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
               Cập nhật ngay để tận hưởng tính năng mới và cải tiến.
             </p>
             {state.body && (
-              <pre className="updater-notes">{state.body}</pre>
+              <div className="updater-notes markdown-body">
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+                  {state.body}
+                </ReactMarkdown>
+              </div>
             )}
             <div className="updater-actions">
               <button className="btn-secondary updater-btn" onClick={dismiss}>
@@ -475,12 +487,19 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
           text-align: left;
           font-size: 0.9rem;
           color: var(--text-secondary);
-          white-space: pre-wrap;
-          max-height: 140px;
+          max-height: 200px;
           overflow-y: auto;
           margin-bottom: 1.75rem;
           box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
         }
+        
+        .markdown-body table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+        .markdown-body th, .markdown-body td { border: 1px solid rgba(255,255,255,0.1); padding: 6px; text-align: left; }
+        .markdown-body img { vertical-align: middle; }
+        .markdown-body a { color: var(--primary); text-decoration: none; }
+        .markdown-body p { margin-bottom: 8px; }
+        .markdown-body ul, .markdown-body ol { margin-left: 20px; margin-bottom: 8px; }
+        .markdown-body code { background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
         
         /* Custom scrollbar for notes */
         .updater-notes::-webkit-scrollbar { width: 6px; }
