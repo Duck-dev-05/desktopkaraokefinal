@@ -12,7 +12,8 @@ type UpdaterState =
   | { status: "installing" }
   | { status: "error"; message: string }
   | { status: "up-to-date" }
-  | { status: "github-available"; version: string; url: string };
+  | { status: "github-available"; version: string; url: string }
+  | { status: "github-ready"; version: string; url: string; body: string };
 
 interface UpdaterProps {
   /** If true, shows feedback even when no update is available (used from Settings) */
@@ -97,7 +98,7 @@ export function useCheckForUpdates() {
             const data = await res.json();
             const tagVersion = data.tag_name.replace(/^v/, "");
             const currentVersion = await getVersion();
-            
+
             const cmp = (a: string, b: string) => {
               const pa = a.split('.').map(Number);
               const pb = b.split('.').map(Number);
@@ -109,7 +110,14 @@ export function useCheckForUpdates() {
             };
 
             if (cmp(tagVersion, currentVersion) > 0) {
-              setState({ status: "github-available", version: tagVersion, url: data.html_url });
+              const winAsset = data.assets.find((a: any) => a.name.endsWith('.exe'));
+              const dlUrl = winAsset ? winAsset.browser_download_url : data.html_url;
+
+              if (winAsset) {
+                setState({ status: "github-ready", version: tagVersion, url: dlUrl, body: data.body });
+              } else {
+                setState({ status: "github-available", version: tagVersion, url: dlUrl });
+              }
               return;
             }
           }
@@ -151,14 +159,30 @@ export function useCheckForUpdates() {
     }
   }, []);
 
-  return { state, checkUpdates, installUpdate, setState };
+  const installGithubUpdate = useCallback(async (url: string) => {
+    setState({ status: "downloading", progress: 0 });
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      const { listen } = await import("@tauri-apps/api/event");
+      const unlisten = await listen<{ progress: number }>("download-progress", (event) => {
+        setState({ status: "downloading", progress: event.payload.progress });
+      });
+      await invoke("download_and_install_update", { url });
+      setState({ status: "installing" });
+      unlisten();
+    } catch (e) {
+      setState({ status: "error", message: friendlyError(e) });
+    }
+  }, []);
+
+  return { state, checkUpdates, installUpdate, installGithubUpdate, setState };
 }
 
 // ────────────────────────────────────────────────────────────────────
 // Main component – mounts globally in App.tsx for automatic checks
 // ────────────────────────────────────────────────────────────────────
 export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
-  const { state, checkUpdates, installUpdate, setState } = useUpdaterContext();
+  const { state, checkUpdates, installUpdate, installGithubUpdate, setState } = useUpdaterContext();
   const hasAutoChecked = useRef(false);
   const { settings } = useSettings();
 
@@ -180,8 +204,10 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
   useEffect(() => {
     if (settings.autoUpdate && state.status === "available") {
       installUpdate(state.update, state.isManual);
+    } else if (settings.autoUpdate && state.status === "github-ready") {
+      installGithubUpdate(state.url);
     }
-  }, [settings.autoUpdate, state, installUpdate]);
+  }, [settings.autoUpdate, state, installUpdate, installGithubUpdate]);
 
   // Nothing to show while idle / checking silently / up-to-date
   if (state.status === "idle" || state.status === "checking" || state.status === "up-to-date") return null;
@@ -225,7 +251,33 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
           </>
         )}
 
-        {/* ── GitHub Update available ── */}
+        {/* ── GitHub Update ready to install ── */}
+        {state.status === "github-ready" && (
+          <>
+            <div className="updater-icon">🚀</div>
+            <h2 className="updater-title">Có bản cập nhật mới!</h2>
+            <p className="updater-body">
+              Phiên bản <strong>{state.version}</strong> đã sẵn sàng.
+              Cập nhật ngay để tận hưởng tính năng mới và cải tiến.
+            </p>
+            {state.body && (
+              <pre className="updater-notes">{state.body}</pre>
+            )}
+            <div className="updater-actions">
+              <button className="btn-secondary" onClick={dismiss}>
+                Nhắc sau
+              </button>
+              <button
+                className="btn-primary"
+                onClick={() => installGithubUpdate(state.url)}
+              >
+                Cập nhật ngay
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── GitHub Update available (no direct dl) ── */}
         {state.status === "github-available" && (
           <>
             <div className="updater-icon">📦</div>

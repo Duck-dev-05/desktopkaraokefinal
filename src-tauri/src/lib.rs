@@ -13,6 +13,54 @@ struct CacheState {
 use std::fs;
 use std::process::Command;
 use tauri::Manager;
+use futures_util::StreamExt;
+use tauri::Emitter;
+
+#[derive(Clone, serde::Serialize)]
+struct DownloadProgress {
+    progress: u64,
+}
+
+#[tauri::command]
+async fn download_and_install_update(app: tauri::AppHandle, url: String) -> Result<(), String> {
+    let client = reqwest::Client::new();
+    let res = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    let total_size = res.content_length().unwrap_or(0);
+    
+    let temp_dir = std::env::temp_dir();
+    let installer_path = temp_dir.join("KaraokePro_Update.exe");
+    let mut file = std::fs::File::create(&installer_path).map_err(|e| e.to_string())?;
+    
+    let mut downloaded = 0;
+    let mut stream = res.bytes_stream();
+    let mut last_percentage = 0;
+    
+    while let Some(item) = stream.next().await {
+        let chunk = item.map_err(|e| e.to_string())?;
+        use std::io::Write;
+        file.write_all(&chunk).map_err(|e| e.to_string())?;
+        downloaded += chunk.len() as u64;
+        
+        if total_size > 0 {
+            let percentage = ((downloaded as f64 / total_size as f64) * 100.0) as u64;
+            if percentage > last_percentage {
+                last_percentage = percentage;
+                let _ = app.emit("download-progress", DownloadProgress { progress: percentage });
+            }
+        }
+    }
+    
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new(&installer_path)
+            .arg("/S")
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    
+    app.exit(0);
+    Ok(())
+}
 
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -641,7 +689,8 @@ pub fn run() {
             search_youtube_cached,
             create_subscription,
             separate_vocals,
-            merge_duet
+            merge_duet,
+            download_and_install_update
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
