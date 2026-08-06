@@ -101,6 +101,8 @@ const Login = () => {
       
       onInvalidUrl((err) => {
         console.error("Received invalid OAuth URL:", err);
+        alert("Đăng nhập thất bại");
+        setIsLoading(false);
       });
 
       let unlisten: (() => void) | undefined;
@@ -116,8 +118,12 @@ const Login = () => {
         // Extract the code from the URL (e.g., http://localhost:port/?code=xyz...)
         const urlObj = new URL(url);
         const code = urlObj.searchParams.get('code');
+        const error = urlObj.searchParams.get('error');
 
-        if (code) {
+        if (error) {
+          console.error("OAuth error returned from provider:", error);
+          alert("Đăng nhập thất bại");
+        } else if (code) {
           try {
             // Exchange code for token
             const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
