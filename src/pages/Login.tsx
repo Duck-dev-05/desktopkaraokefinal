@@ -94,9 +94,9 @@ const Login = () => {
             document.querySelector('h1').innerText = 'Đăng Nhập Bị Hủy';
             document.querySelector('p').innerText = 'Bạn có thể đóng cửa sổ này.';
             document.querySelector('.icon').innerText = '❌';
-            setTimeout(() => window.close(), 1000);
+            setTimeout(() => window.close(), 500);
           } else {
-            setTimeout(() => window.close(), 3000);
+            setTimeout(() => window.close(), 500);
           }
         </script>
       </body>
@@ -146,7 +146,7 @@ const Login = () => {
         if (unlisten) unlisten(); // Stop listening
         try {
           if (oauthPortRef.current) {
-            await cancel(oauthPortRef.current); // Shutdown the local server
+            cancel(oauthPortRef.current).catch(e => console.warn(e)); // Shutdown the local server without blocking
             oauthPortRef.current = null;
           }
         } catch (e) {
@@ -165,6 +165,9 @@ const Login = () => {
         } else if (code) {
           try {
             // Exchange code for token
+            const tokenController = new AbortController();
+            const tokenTimeout = setTimeout(() => tokenController.abort(), 10000);
+
             const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
               method: 'POST',
               headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -175,15 +178,22 @@ const Login = () => {
                 redirect_uri: GOOGLE_REDIRECT_URI,
                 grant_type: 'authorization_code',
               }),
+              signal: tokenController.signal
             });
+            clearTimeout(tokenTimeout);
 
             const tokenData = await tokenResponse.json();
             
             if (tokenData.access_token) {
               // Now we have the access token! We can fetch user info.
+              const userController = new AbortController();
+              const userTimeout = setTimeout(() => userController.abort(), 10000);
+              
               const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
                 headers: { Authorization: `Bearer ${tokenData.access_token}` },
+                signal: userController.signal
               });
+              clearTimeout(userTimeout);
               const userInfo = await userInfoResponse.json();
 
               console.log("Logged in as:", userInfo);
@@ -202,7 +212,8 @@ const Login = () => {
               navigate('/');
             } else {
               console.error("Failed to get token:", tokenData);
-              await message("Xác thực thất bại.", { title: "Lỗi", kind: "error" });
+              const errMsg = tokenData.error_description || tokenData.error || "Không rõ nguyên nhân.";
+              await message(`Xác thực thất bại: ${errMsg}`, { title: "Lỗi", kind: "error" });
             }
           } catch (err) {
             console.error("Token exchange error:", err);
