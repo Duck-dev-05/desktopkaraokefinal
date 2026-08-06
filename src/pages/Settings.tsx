@@ -3,17 +3,30 @@ import { usePlayer } from "../context/PlayerContext";
 import { useUpdaterContext } from "../components/Updater";
 import { getVersion } from "@tauri-apps/api/app";
 import { useSettings } from "../context/SettingsContext";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CustomSelect from "../components/CustomSelect";
 import "./Settings.css";
+
+// ── Nav section definitions ──────────────────────────────────
+const NAV_SECTIONS = [
+  { id: "audio-input",  label: "Đầu Vào Âm Thanh", icon: Mic },
+  { id: "audio-output", label: "Đầu Ra Âm Thanh",  icon: Volume2 },
+  { id: "video",        label: "Video & Hiển Thị",  icon: Monitor },
+  { id: "updates",      label: "Cập Nhật",           icon: RefreshCw },
+] as const;
 
 const Settings = () => {
   const { audioOffset, setAudioOffset } = usePlayer();
   const { state: updateState, checkUpdates, installUpdate } = useUpdaterContext();
   const { settings, updateSettings } = useSettings();
+
   const [appVersion, setAppVersion] = useState<string>("");
-  const [audioInputs, setAudioInputs] = useState<MediaDeviceInfo[]>([]);
+  const [audioInputs,  setAudioInputs]  = useState<MediaDeviceInfo[]>([]);
   const [audioOutputs, setAudioOutputs] = useState<MediaDeviceInfo[]>([]);
+  const [activeSection, setActiveSection] = useState<string>("audio-input");
+
+  // Section refs for scroll-spy
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   useEffect(() => {
     getVersion().then(setAppVersion).catch(console.error);
@@ -21,67 +34,131 @@ const Settings = () => {
     const fetchDevices = async () => {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
-        setAudioInputs(devices.filter(d => d.kind === 'audioinput'));
-        setAudioOutputs(devices.filter(d => d.kind === 'audiooutput'));
+        setAudioInputs(devices.filter(d => d.kind === "audioinput"));
+        setAudioOutputs(devices.filter(d => d.kind === "audiooutput"));
       } catch (err) {
         console.error("Error fetching media devices:", err);
       }
     };
 
     fetchDevices();
-    navigator.mediaDevices.addEventListener('devicechange', fetchDevices);
-    return () => {
-      navigator.mediaDevices.removeEventListener('devicechange', fetchDevices);
-    };
+    navigator.mediaDevices.addEventListener("devicechange", fetchDevices);
+    return () => navigator.mediaDevices.removeEventListener("devicechange", fetchDevices);
   }, []);
 
-  const handleCheckUpdates = () => {
-    checkUpdates(true);
+  // Scroll-spy: update active nav item when scrolling
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-30% 0px -60% 0px", threshold: 0 }
+    );
+
+    NAV_SECTIONS.forEach(({ id }) => {
+      const el = sectionRefs.current[id];
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const scrollToSection = (id: string) => {
+    sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActiveSection(id);
   };
+
+  const hasUpdate = updateState.status === "available" || updateState.status === "github-available";
 
   return (
     <div className="settings-page animate-fade-in">
+      {/* ── Page Header ── */}
       <header className="page-header">
         <h1>Cài Đặt</h1>
         <p className="text-muted">Cấu hình trải nghiệm karaoke của bạn.</p>
       </header>
 
+      {/* ── Left Navigation ── */}
+      <nav className="settings-nav">
+        <div className="settings-nav-title">Danh mục</div>
+        {NAV_SECTIONS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            className={`settings-nav-item${activeSection === id ? " active" : ""}`}
+            onClick={() => scrollToSection(id)}
+          >
+            <Icon size={16} />
+            {label}
+            {id === "updates" && hasUpdate && (
+              <span className="settings-nav-badge">MỚI</span>
+            )}
+          </button>
+        ))}
+      </nav>
+
+      {/* ── Settings Sections ── */}
       <div className="settings-container">
-        <section className="settings-section glass">
+
+        {/* ── Audio Input ──────────────────────────── */}
+        <section
+          id="audio-input"
+          ref={(el) => { sectionRefs.current["audio-input"] = el; }}
+          className="settings-section glass"
+        >
           <div className="section-title">
-            <Mic size={24} color="var(--primary)" />
+            <div className="section-title-icon"><Mic size={20} /></div>
             <h2>Đầu Vào Âm Thanh</h2>
           </div>
+
           <div className="settings-content">
+            {/* Microphone Device */}
             <div className="setting-row">
-              <label>Thiết bị Micro</label>
+              <div className="setting-row-info">
+                <span className="setting-row-label">Thiết bị Micro</span>
+                <span className="setting-row-desc">Chọn microphone để thu âm giọng hát.</span>
+              </div>
               <CustomSelect
-                options={audioInputs.length > 0 ? audioInputs.map((device, idx) => ({
-                  value: device.deviceId,
-                  label: device.label || `Microphone ${idx + 1}`
-                })) : [{ value: "default", label: "Mặc định hệ thống" }]}
-                value={settings.micDevice || 'default'}
+                options={audioInputs.length > 0
+                  ? audioInputs.map((device, idx) => ({ value: device.deviceId, label: device.label || `Microphone ${idx + 1}` }))
+                  : [{ value: "default", label: "Mặc định hệ thống" }]
+                }
+                value={settings.micDevice || "default"}
                 onChange={(val) => updateSettings({ micDevice: val })}
               />
             </div>
-            <div className="setting-row">
-              <label>Âm lượng đầu vào (Gain)</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Mic size={16} className="text-muted" />
+
+            {/* Mic Gain slider */}
+            <div className="setting-row setting-row--slider">
+              <div className="setting-row-top">
+                <div className="setting-row-info">
+                  <span className="setting-row-label">Âm lượng đầu vào (Gain)</span>
+                  <span className="setting-row-desc">Khuếch đại tín hiệu microphone trước khi xử lý.</span>
+                </div>
+                <span className="setting-row-value">{settings.micGain}%</span>
+              </div>
+              <div className="slider-track-wrap">
+                <span className="slider-endpoint">0%</span>
                 <input
                   type="range"
                   className="settings-slider"
-                  min="0"
-                  max="150"
+                  min="0" max="150"
                   value={settings.micGain}
                   onChange={(e) => updateSettings({ micGain: parseInt(e.target.value) })}
-                  style={{ width: '200px' }}
                 />
-                <span className="font-mono text-sm text-primary" style={{ width: '36px', textAlign: 'right' }}>{settings.micGain}%</span>
+                <span className="slider-endpoint slider-endpoint--right">150%</span>
               </div>
             </div>
+
+            {/* Noise Suppression */}
             <div className="setting-row">
-              <label>Khử Tiếng Ồn</label>
+              <div className="setting-row-info">
+                <span className="setting-row-label">Khử Tiếng Ồn</span>
+                <span className="setting-row-desc">Lọc tiếng ồn môi trường xung quanh.</span>
+              </div>
               <label className="toggle-switch">
                 <input
                   type="checkbox"
@@ -92,93 +169,130 @@ const Settings = () => {
               </label>
             </div>
 
-            <div className="setting-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '8px', paddingTop: '16px', borderTop: '1px solid var(--border-subtle)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <RefreshCw size={16} color="var(--primary)" />
-                  Đồng bộ Âm thanh (Audio Latency Calibration)
-                </label>
-                <span className="text-primary font-mono" style={{ background: 'rgba(168, 85, 247, 0.15)', padding: '4px 8px', borderRadius: '4px' }}>
-                  {audioOffset > 0 ? `+${audioOffset}` : audioOffset}ms
-                </span>
+            {/* Audio Latency Calibration */}
+            <div className="setting-subsection">
+              <div className="setting-subsection-label">
+                <RefreshCw size={13} />
+                Đồng bộ Âm thanh — Latency Calibration
               </div>
-              <p className="text-muted text-sm" style={{ marginBottom: '8px' }}>
-                Điều chỉnh nếu giọng hát của bạn bị trễ (lag) so với nhạc nền. (Thường để -50ms đến -200ms với tai nghe Bluetooth).
-              </p>
-              <div style={{ display: 'flex', width: '100%', alignItems: 'center', gap: '16px' }}>
-                <span className="text-xs text-muted font-mono" style={{ width: '46px', textAlign: 'right' }}>-500ms</span>
-                <input
-                  type="range"
-                  className="settings-slider"
-                  min="-500"
-                  max="500"
-                  step="10"
-                  value={audioOffset}
-                  onChange={(e) => setAudioOffset(parseInt(e.target.value))}
-                  style={{ flex: 1, maxWidth: 'none' }}
-                />
-                <span className="text-xs text-muted font-mono" style={{ width: '46px' }}>+500ms</span>
+              <div className="settings-content">
+                <div className="setting-row setting-row--slider">
+                  <div className="setting-row-top">
+                    <div className="setting-row-info">
+                      <span className="setting-row-label">Độ trễ Âm thanh</span>
+                      <span className="setting-row-desc">
+                        Điều chỉnh nếu giọng hát bị trễ so với nhạc nền.
+                        Bluetooth thường cần −50ms đến −200ms.
+                      </span>
+                    </div>
+                    <span className="setting-row-value">
+                      {audioOffset > 0 ? `+${audioOffset}` : audioOffset}ms
+                    </span>
+                  </div>
+                  <div className="slider-track-wrap">
+                    <span className="slider-endpoint">−500ms</span>
+                    <input
+                      type="range"
+                      className="settings-slider"
+                      min="-500" max="500" step="10"
+                      value={audioOffset}
+                      onChange={(e) => setAudioOffset(parseInt(e.target.value))}
+                    />
+                    <span className="slider-endpoint slider-endpoint--right">+500ms</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="settings-section glass">
+        {/* ── Audio Output ──────────────────────────── */}
+        <section
+          id="audio-output"
+          ref={(el) => { sectionRefs.current["audio-output"] = el; }}
+          className="settings-section glass"
+        >
           <div className="section-title">
-            <Volume2 size={24} color="var(--primary)" />
+            <div className="section-title-icon"><Volume2 size={20} /></div>
             <h2>Đầu Ra Âm Thanh</h2>
           </div>
+
           <div className="settings-content">
+            {/* Output Device */}
             <div className="setting-row">
-              <label>Thiết bị Đầu ra</label>
+              <div className="setting-row-info">
+                <span className="setting-row-label">Thiết bị Đầu ra</span>
+                <span className="setting-row-desc">Loa hoặc tai nghe để phát nhạc và giọng hát.</span>
+              </div>
               <CustomSelect
-                options={audioOutputs.length > 0 ? audioOutputs.map((device, idx) => ({
-                  value: device.deviceId,
-                  label: device.label || `Speaker ${idx + 1}`
-                })) : [{ value: "default", label: "Mặc định hệ thống" }]}
-                value={settings.outputDevice || 'default'}
+                options={audioOutputs.length > 0
+                  ? audioOutputs.map((device, idx) => ({ value: device.deviceId, label: device.label || `Speaker ${idx + 1}` }))
+                  : [{ value: "default", label: "Mặc định hệ thống" }]
+                }
+                value={settings.outputDevice || "default"}
                 onChange={(val) => updateSettings({ outputDevice: val })}
               />
             </div>
-            <div className="setting-row">
-              <label>Âm lượng Tổng</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Volume2 size={16} className="text-muted" />
+
+            {/* Master Volume slider */}
+            <div className="setting-row setting-row--slider">
+              <div className="setting-row-top">
+                <div className="setting-row-info">
+                  <span className="setting-row-label">Âm lượng Tổng</span>
+                  <span className="setting-row-desc">Âm lượng phát lại chính của ứng dụng.</span>
+                </div>
+                <span className="setting-row-value">{settings.masterVolume}%</span>
+              </div>
+              <div className="slider-track-wrap">
+                <span className="slider-endpoint">0%</span>
                 <input
                   type="range"
                   className="settings-slider"
-                  min="0"
-                  max="150"
+                  min="0" max="150"
                   value={settings.masterVolume}
                   onChange={(e) => updateSettings({ masterVolume: parseInt(e.target.value) })}
-                  style={{ width: '200px' }}
                 />
-                <span className="font-mono text-sm text-primary" style={{ width: '36px', textAlign: 'right' }}>{settings.masterVolume}%</span>
+                <span className="slider-endpoint slider-endpoint--right">150%</span>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="settings-section glass">
+        {/* ── Video & Display ───────────────────────── */}
+        <section
+          id="video"
+          ref={(el) => { sectionRefs.current["video"] = el; }}
+          className="settings-section glass"
+        >
           <div className="section-title">
-            <Monitor size={24} color="var(--primary)" />
-            <h2>Video & Hiển Thị</h2>
+            <div className="section-title-icon"><Monitor size={20} /></div>
+            <h2>Video &amp; Hiển Thị</h2>
           </div>
+
           <div className="settings-content">
+            {/* Video Quality */}
             <div className="setting-row">
-              <label>Chất lượng Video</label>
+              <div className="setting-row-info">
+                <span className="setting-row-label">Chất lượng Video</span>
+                <span className="setting-row-desc">Độ phân giải phát video YouTube karaoke.</span>
+              </div>
               <CustomSelect
                 options={[
-                  { value: "1080p", label: "1080p (Chất lượng Cao)" },
-                  { value: "720p", label: "720p (Tiêu chuẩn)" },
-                  { value: "480p", label: "480p (Tiết kiệm Dữ liệu)" }
+                  { value: "1080p", label: "1080p — Chất lượng Cao" },
+                  { value: "720p",  label: "720p — Tiêu chuẩn" },
+                  { value: "480p",  label: "480p — Tiết kiệm Dữ liệu" },
                 ]}
                 value={settings.videoQuality}
                 onChange={(val) => updateSettings({ videoQuality: val })}
               />
             </div>
+
+            {/* Background Video */}
             <div className="setting-row">
-              <label>Hiển thị Video Nền</label>
+              <div className="setting-row-info">
+                <span className="setting-row-label">Hiển thị Video Nền</span>
+                <span className="setting-row-desc">Phát video nền động trong khi hát karaoke.</span>
+              </div>
               <label className="toggle-switch">
                 <input
                   type="checkbox"
@@ -188,12 +302,17 @@ const Settings = () => {
                 <span className="slider round"></span>
               </label>
             </div>
+
+            {/* Lyrics Sync */}
             <div className="setting-row">
-              <label>Đồng bộ Lời bài hát</label>
+              <div className="setting-row-info">
+                <span className="setting-row-label">Đồng bộ Lời bài hát</span>
+                <span className="setting-row-desc">Kiểu hiển thị và chuyển đổi lời theo nhịp nhạc.</span>
+              </div>
               <CustomSelect
                 options={[
                   { value: "smooth", label: "Chuyển động mượt mà" },
-                  { value: "word", label: "Từng chữ một" }
+                  { value: "word",   label: "Từng chữ một" },
                 ]}
                 value={settings.lyricsSync}
                 onChange={(val) => updateSettings({ lyricsSync: val })}
@@ -202,15 +321,24 @@ const Settings = () => {
           </div>
         </section>
 
-        {/* ── App Updates ── */}
-        <section className="settings-section glass">
+        {/* ── App Updates ───────────────────────────── */}
+        <section
+          id="updates"
+          ref={(el) => { sectionRefs.current["updates"] = el; }}
+          className="settings-section glass"
+        >
           <div className="section-title">
-            <RefreshCw size={24} color="var(--primary)" />
+            <div className="section-title-icon"><RefreshCw size={20} /></div>
             <h2>Cập Nhật Ứng Dụng</h2>
           </div>
+
           <div className="settings-content">
+            {/* Auto-update toggle */}
             <div className="setting-row">
-              <label>Tự động cài đặt cập nhật</label>
+              <div className="setting-row-info">
+                <span className="setting-row-label">Tự động cài đặt cập nhật</span>
+                <span className="setting-row-desc">Cài bản cập nhật tự động khi khởi động ứng dụng.</span>
+              </div>
               <label className="toggle-switch">
                 <input
                   type="checkbox"
@@ -220,18 +348,21 @@ const Settings = () => {
                 <span className="slider round"></span>
               </label>
             </div>
+
+            {/* Current version + update action */}
             <div className="setting-row">
-              <div className="setting-row-label">
-                <label>Phiên bản hiện tại</label>
-                <span className="setting-row-desc">Karaoke Pro v{appVersion || "..."}</span>
+              <div className="setting-row-info">
+                <span className="setting-row-label">Phiên bản hiện tại</span>
+                <span className="setting-row-desc">
+                  <span className="version-badge">Karaoke Pro v{appVersion || "…"}</span>
+                </span>
               </div>
 
-              {/* ── Dynamic Update Button ── */}
               {(updateState.status === "idle" || updateState.status === "up-to-date") && (
                 <button
                   id="check-updates-btn"
                   className="update-btn update-btn--idle"
-                  onClick={handleCheckUpdates}
+                  onClick={() => checkUpdates(true)}
                 >
                   <RefreshCw size={15} />
                   Kiểm tra cập nhật
@@ -256,8 +387,6 @@ const Settings = () => {
                 </button>
               )}
 
-
-
               {updateState.status === "downloading" && (
                 <div className="update-progress-inline">
                   <div className="update-progress-bar">
@@ -280,7 +409,7 @@ const Settings = () => {
               {updateState.status === "error" && (
                 <button
                   className="update-btn update-btn--error"
-                  onClick={handleCheckUpdates}
+                  onClick={() => checkUpdates(true)}
                 >
                   <AlertCircle size={15} />
                   Thử lại
@@ -288,37 +417,38 @@ const Settings = () => {
               )}
             </div>
 
-            {/* Status hint row */}
+            {/* Status messages */}
             {updateState.status === "idle" && (
-              <p className="text-muted text-sm" style={{ marginTop: 4 }}>
+              <p className="update-status update-status--muted">
                 Ứng dụng tự động kiểm tra cập nhật khi khởi động.
               </p>
             )}
             {updateState.status === "up-to-date" && (
-              <p className="text-sm" style={{ color: "var(--success, #4ade80)", marginTop: 4 }}>
-                <CheckCircle2 size={13} style={{ verticalAlign: "middle", marginRight: 4 }} />
+              <p className="update-status update-status--success">
+                <CheckCircle2 size={14} />
                 Ứng dụng đang ở phiên bản mới nhất.
               </p>
             )}
-            {updateState.status === "error" && (
-              <p className="text-sm" style={{ color: "var(--error, #f87171)", marginTop: 4 }}>
-                <AlertCircle size={13} style={{ verticalAlign: "middle", marginRight: 4 }} />
-                {(updateState as any).message}
-              </p>
-            )}
             {updateState.status === "available" && (
-              <p className="text-sm" style={{ color: "var(--success, #4ade80)", marginTop: 4 }}>
-                <CheckCircle2 size={13} style={{ verticalAlign: "middle", marginRight: 4 }} />
+              <p className="update-status update-status--success">
+                <CheckCircle2 size={14} />
                 Có bản cập nhật mới sẵn sàng để cài đặt!
               </p>
             )}
             {updateState.status === "github-available" && (
-              <p className="text-sm" style={{ color: "var(--primary, #a855f7)", marginTop: 4 }}>
+              <p className="update-status update-status--info">
                 📦 Có phiên bản mới trên GitHub! Vui lòng tải thủ công.
+              </p>
+            )}
+            {updateState.status === "error" && (
+              <p className="update-status update-status--error">
+                <AlertCircle size={14} />
+                {(updateState as any).message}
               </p>
             )}
           </div>
         </section>
+
       </div>
     </div>
   );
