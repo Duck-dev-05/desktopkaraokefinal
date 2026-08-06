@@ -125,10 +125,8 @@ export function useCheckForUpdates() {
           console.error("Github fallback check failed", githubErr);
         }
         setState({ status: "up-to-date" });
-      } else if (isManual) {
-        setState({ status: "error", message: friendlyError(err) });
       } else {
-        setState({ status: "idle" });
+        setState({ status: "up-to-date" });
       }
     }
   }, []);
@@ -213,7 +211,7 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
   if (state.status === "idle" || state.status === "checking" || state.status === "up-to-date") return null;
 
   // If autoUpdate is enabled and it's a background check, hide the UI for normal updater flow
-  if (!manual && settings.autoUpdate && (state.status === "available" || state.status === "downloading" || state.status === "installing")) {
+  if (!manual && settings.autoUpdate && (state.status === "available" || state.status === "downloading" || state.status === "installing" || state.status === "github-ready")) {
     return null;
   }
 
