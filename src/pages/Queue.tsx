@@ -21,13 +21,10 @@ const Queue = () => {
 
   return (
     <div className="queue-page animate-fade-in">
-      <div className="page-header">
-        <div className="page-header-icon">
-          <ListMusic size={22} />
-        </div>
-        <div className="page-header-text">
-          <h1 className="page-header-title">Tiếp Theo</h1>
-          <p className="page-header-subtitle">{queue.length} bài hát trong hàng đợi</p>
+      <div className="queue-header">
+        <div className="title-group">
+          <h1>Tiếp Theo</h1>
+          <span className="queue-count">{queue.length} bài hát trong hàng đợi</span>
         </div>
         <button 
           className="btn btn-primary start-party-btn"
@@ -40,8 +37,6 @@ const Queue = () => {
         </button>
       </div>
 
-
-
       <div className="queue-list">
         {queue.length > 0 ? queue.map((item, index) => (
           <div className="queue-item" key={item.queueId} onClick={() => handlePlayNow(item)} style={{ cursor: 'pointer' }}>
@@ -52,7 +47,11 @@ const Queue = () => {
             <img src={item.thumbnail} alt={item.title} className="queue-thumbnail" />
             <div className="queue-song-info">
               <span className="song-title">{item.title}</span>
-              <span className="song-artist">YouTube • {item.channelTitle}</span>
+              <span className="song-artist">YouTube</span>
+            </div>
+            <div className="queue-singer">
+              <span className="singer-label">KÊNH</span>
+              <span className="singer-name">{item.channelTitle}</span>
             </div>
             <div className="queue-duration">
               <button 
@@ -73,10 +72,12 @@ const Queue = () => {
             </button>
           </div>
         )) : (
-          <div className="empty-state animate-fade-in">
-            <ListMusic size={64} className="empty-state-icon" />
+          <div className="queue-empty-state animate-fade-in">
+            <div className="empty-icon-container">
+              <ListMusic size={48} className="empty-icon" />
+            </div>
             <h3>Hàng Đợi Trống</h3>
-            <p className="text-muted">Bạn chưa chọn bài hát nào. Hãy tìm kiếm và thêm bài hát vào hàng đợi để bắt đầu hát!</p>
+            <p>Bạn chưa chọn bài hát nào. Hãy tìm kiếm và thêm bài hát vào hàng đợi để bắt đầu hát!</p>
           </div>
         )}
       </div>
