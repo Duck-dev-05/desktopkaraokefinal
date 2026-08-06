@@ -1,4 +1,5 @@
 import { Mic, Volume2, Monitor, RefreshCw, CheckCircle2, AlertCircle, Download, Loader2 } from "lucide-react";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { usePlayer } from "../context/PlayerContext";
 import { useUpdaterContext } from "../components/Updater";
 import { getVersion } from "@tauri-apps/api/app";
@@ -384,6 +385,16 @@ const Settings = () => {
                 >
                   <Download size={15} />
                   Cập nhật v{(updateState as any).update?.version}
+                </button>
+              )}
+
+              {updateState.status === "github-available" && (
+                <button
+                  className="update-btn update-btn--available"
+                  onClick={() => openUrl((updateState as any).url)}
+                >
+                  <Download size={15} />
+                  Tải xuống v{(updateState as any).version}
                 </button>
               )}
 

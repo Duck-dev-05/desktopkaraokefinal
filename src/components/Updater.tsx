@@ -11,7 +11,8 @@ type UpdaterState =
   | { status: "downloading"; progress: number }
   | { status: "installing" }
   | { status: "error"; message: string }
-  | { status: "up-to-date" };
+  | { status: "up-to-date" }
+  | { status: "github-available"; version: string; url: string };
 
 interface UpdaterProps {
   /** If true, shows feedback even when no update is available (used from Settings) */
@@ -90,6 +91,31 @@ export function useCheckForUpdates() {
       console.error("Update check failed:", err);
 
       if (isNoReleaseError(err)) {
+        try {
+          const res = await fetch("https://api.github.com/repos/Duck-dev-05/desktopkaraokefinal/releases/latest");
+          if (res.ok) {
+            const data = await res.json();
+            const tagVersion = data.tag_name.replace(/^v/, "");
+            const currentVersion = await getVersion();
+            
+            const cmp = (a: string, b: string) => {
+              const pa = a.split('.').map(Number);
+              const pb = b.split('.').map(Number);
+              for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+                if ((pa[i] || 0) > (pb[i] || 0)) return 1;
+                if ((pa[i] || 0) < (pb[i] || 0)) return -1;
+              }
+              return 0;
+            };
+
+            if (cmp(tagVersion, currentVersion) > 0) {
+              setState({ status: "github-available", version: tagVersion, url: data.html_url });
+              return;
+            }
+          }
+        } catch (githubErr) {
+          console.error("Github fallback check failed", githubErr);
+        }
         setState({ status: "up-to-date" });
       } else if (isManual) {
         setState({ status: "error", message: friendlyError(err) });
@@ -194,6 +220,32 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
                 onClick={() => installUpdate(state.update, true)}
               >
                 Cập nhật ngay
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── GitHub Update available ── */}
+        {state.status === "github-available" && (
+          <>
+            <div className="updater-icon">📦</div>
+            <h2 className="updater-title">Có bản cập nhật mới!</h2>
+            <p className="updater-body">
+              Phiên bản <strong>{state.version}</strong> đã được phát hành trên GitHub.
+              Vui lòng tải xuống và cài đặt thủ công.
+            </p>
+            <div className="updater-actions">
+              <button className="btn-secondary" onClick={dismiss}>
+                Nhắc sau
+              </button>
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  openUrl(state.url);
+                  dismiss();
+                }}
+              >
+                Mở GitHub
               </button>
             </div>
           </>
