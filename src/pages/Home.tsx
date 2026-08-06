@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import SongCard from "../components/SongCard";
 import { searchYoutubeKaraoke, searchYoutubePlaylists, YoutubeVideo, YoutubePlaylist } from "../api/youtube";
 import { useAuth } from "../context/AuthContext";
+import { getRecordingsForUser } from "../db";
 import "./Home.css";
 
 const Home = () => {
@@ -13,6 +14,7 @@ const Home = () => {
   const [playlists, setPlaylists] = useState<YoutubePlaylist[]>([]);
   const [activeRooms, setActiveRooms] = useState<any[]>([]); // Empty array for real active rooms
   const [isLoading, setIsLoading] = useState(true);
+  const [userSongCount, setUserSongCount] = useState<number | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -39,6 +41,23 @@ const Home = () => {
     };
     fetchHomeData();
   }, []);
+
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      if (user) {
+        try {
+          const recordings = await getRecordingsForUser(Number(user.id));
+          setUserSongCount(recordings.length);
+        } catch (err) {
+          console.error("Failed to fetch user recordings:", err);
+          setUserSongCount(0);
+        }
+      } else {
+        setUserSongCount(null);
+      }
+    };
+    fetchUserStats();
+  }, [user]);
 
   const renderGrid = (songs: YoutubeVideo[]) => (
     <div className="song-grid">
@@ -90,7 +109,7 @@ const Home = () => {
           </p>
           <div className="hero-stats animate-fade-in stagger-3">
             <div className="hero-stat">
-              <span className="hero-stat-num">∞</span>
+              <span className="hero-stat-num">{userSongCount !== null ? userSongCount : 0}</span>
               <span className="hero-stat-label">Bài hát</span>
             </div>
             <div className="hero-stat-divider" />
