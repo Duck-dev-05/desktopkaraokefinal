@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Mic2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { start, onUrl, cancel, onInvalidUrl } from "@fabianlars/tauri-plugin-oauth";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { message } from "@tauri-apps/plugin-dialog";
 import { useAuth } from "../context/AuthContext";
 import { initDB, User } from "../db";
 import "./Login.css";
@@ -14,7 +15,7 @@ const GOOGLE_REDIRECT_URI = import.meta.env.VITE_GOOGLE_REDIRECT_URI || "http://
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const oauthPortRef = React.useRef<number | null>(null);
+  const oauthPortRef = useRef<number | null>(null);
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -43,13 +44,13 @@ const Login = () => {
       navigate('/');
     } catch (err) {
       console.error(err);
-      alert("Đăng nhập thất bại");
+      await message("Đăng nhập thất bại", { title: "Lỗi", kind: "error" });
     }
   };
 
   const handleGoogleLogin = async () => {
     if (!GOOGLE_CLIENT_ID) {
-      alert("Google login không khả dụng: VITE_GOOGLE_CLIENT_ID chưa được cấu hình trong build này.");
+      await message("Google login không khả dụng: VITE_GOOGLE_CLIENT_ID chưa được cấu hình trong build này.", { title: "Cảnh báo", kind: "warning" });
       return;
     }
 
@@ -111,10 +112,10 @@ const Login = () => {
       // 2. Set up a listener for the callback URL
       console.log("Setting up OAuth URL listener...");
       
-      onInvalidUrl((err) => {
+      onInvalidUrl(async (err) => {
         console.error("Received invalid OAuth URL:", err);
-        alert("Đăng nhập thất bại");
         setIsLoading(false);
+        await message("Đăng nhập thất bại: URL không hợp lệ", { title: "Lỗi", kind: "error" });
       });
 
       let unlisten: (() => void) | undefined;
@@ -137,7 +138,8 @@ const Login = () => {
 
         if (error) {
           console.error("OAuth error returned from provider:", error);
-          alert("Đăng nhập thất bại");
+          setIsLoading(false);
+          await message("Đăng nhập đã bị hủy hoặc thất bại.", { title: "Đăng nhập", kind: "warning" });
         } else if (code) {
           try {
             // Exchange code for token
@@ -178,11 +180,11 @@ const Login = () => {
               navigate('/');
             } else {
               console.error("Failed to get token:", tokenData);
-              alert("Xác thực thất bại.");
+              await message("Xác thực thất bại.", { title: "Lỗi", kind: "error" });
             }
           } catch (err) {
             console.error("Token exchange error:", err);
-            alert("Lỗi trao đổi token.");
+            await message("Lỗi trao đổi token.", { title: "Lỗi", kind: "error" });
           }
         }
         setIsLoading(false);
@@ -198,7 +200,7 @@ const Login = () => {
     } catch (error) {
       console.error("OAuth error:", error);
       setIsLoading(false);
-      alert("Lỗi khởi tạo quá trình OAuth.");
+      await message("Lỗi khởi tạo quá trình OAuth.", { title: "Lỗi", kind: "error" });
     }
   };
 
@@ -274,6 +276,7 @@ const Login = () => {
                       console.error(e);
                     }
                   }
+                  await message("Bạn đã hủy tiến trình đăng nhập.", { title: "Đã hủy", kind: "info" });
                 }}
               >
                 Hủy
