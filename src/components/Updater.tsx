@@ -62,7 +62,7 @@ function friendlyError(err: unknown): string {
   if (raw.includes("network") || raw.includes("internet") || raw.includes("connection")) {
     return "Mất kết nối mạng. Hãy kiểm tra internet và thử lại.";
   }
-  return "Kiểm tra cập nhật thất bại. Vui lòng thử lại.";
+  return `Cập nhật thất bại. Vui lòng thử lại. Lỗi: ${String(err)}`;
 }
 
 /** Returns true for errors that mean "no releases published yet" or unreachable server */
@@ -91,43 +91,39 @@ export function useCheckForUpdates() {
     } catch (err) {
       console.error("Update check failed:", err);
 
-      if (isNoReleaseError(err)) {
-        try {
-          const res = await fetch("https://api.github.com/repos/Duck-dev-05/desktopkaraokefinal/releases/latest");
-          if (res.ok) {
-            const data = await res.json();
-            const tagVersion = data.tag_name.replace(/^v/, "");
-            const currentVersion = await getVersion();
+      try {
+        const res = await fetch("https://api.github.com/repos/Duck-dev-05/desktopkaraokefinal/releases/latest");
+        if (res.ok) {
+          const data = await res.json();
+          const tagVersion = data.tag_name.replace(/^v/, "");
+          const currentVersion = await getVersion();
 
-            const cmp = (a: string, b: string) => {
-              const pa = a.split('.').map(Number);
-              const pb = b.split('.').map(Number);
-              for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-                if ((pa[i] || 0) > (pb[i] || 0)) return 1;
-                if ((pa[i] || 0) < (pb[i] || 0)) return -1;
-              }
-              return 0;
-            };
-
-            if (cmp(tagVersion, currentVersion) > 0) {
-              const winAsset = data.assets.find((a: any) => a.name.endsWith('.exe'));
-              const dlUrl = winAsset ? winAsset.browser_download_url : data.html_url;
-
-              if (winAsset) {
-                setState({ status: "github-ready", version: tagVersion, url: dlUrl, body: data.body });
-              } else {
-                setState({ status: "github-available", version: tagVersion, url: dlUrl });
-              }
-              return;
+          const cmp = (a: string, b: string) => {
+            const pa = a.split('.').map(Number);
+            const pb = b.split('.').map(Number);
+            for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+              if ((pa[i] || 0) > (pb[i] || 0)) return 1;
+              if ((pa[i] || 0) < (pb[i] || 0)) return -1;
             }
+            return 0;
+          };
+
+          if (cmp(tagVersion, currentVersion) > 0) {
+            const winAsset = data.assets.find((a: any) => a.name.endsWith('.exe'));
+            const dlUrl = winAsset ? winAsset.browser_download_url : data.html_url;
+
+            if (winAsset) {
+              setState({ status: "github-ready", version: tagVersion, url: dlUrl, body: data.body });
+            } else {
+              setState({ status: "github-available", version: tagVersion, url: dlUrl });
+            }
+            return;
           }
-        } catch (githubErr) {
-          console.error("Github fallback check failed", githubErr);
         }
-        setState({ status: "up-to-date" });
-      } else {
-        setState({ status: "up-to-date" });
+      } catch (githubErr) {
+        console.error("Github fallback check failed", githubErr);
       }
+      setState({ status: "up-to-date" });
     }
   }, []);
 

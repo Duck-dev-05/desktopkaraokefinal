@@ -4,9 +4,12 @@ import { Play, Pause, SkipForward, X, Tv } from 'lucide-react';
 import { useQueue } from '../context/QueueContext';
 import '../pages/SingView.css';
 
+import { useDeviceDetection } from '../hooks/useDeviceDetection';
+
 const RemoteControl = () => {
   const { currentVideo, isPlaying, playVideo, pauseVideo, resumeVideo, closePlayer } = usePlayer();
   const { queue, removeFromQueue } = useQueue();
+  const { hasMultipleMonitors } = useDeviceDetection();
 
   if (!currentVideo) return null;
 
@@ -23,7 +26,7 @@ const RemoteControl = () => {
   return (
     <div style={{
       position: 'fixed',
-      bottom: 0,
+      bottom: hasMultipleMonitors ? '65px' : 0,
       left: 0,
       right: 0,
       height: '90px',

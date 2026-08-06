@@ -23,12 +23,23 @@ struct DownloadProgress {
 
 #[tauri::command]
 async fn download_and_install_update(app: tauri::AppHandle, url: String) -> Result<(), String> {
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .user_agent("KaraokeDesktopApp/1.0")
+        .build()
+        .map_err(|e| e.to_string())?;
+        
     let res = client.get(&url).send().await.map_err(|e| e.to_string())?;
+    
+    // Check if the response is actually successful
+    if !res.status().is_success() {
+        return Err(format!("Download failed with status: {}", res.status()));
+    }
+    
     let total_size = res.content_length().unwrap_or(0);
     
     let temp_dir = std::env::temp_dir();
-    let installer_path = temp_dir.join("KaraokePro_Update.exe");
+    let file_id = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
+    let installer_path = temp_dir.join(format!("KaraokePro_Update_{}.exe", file_id));
     let mut file = std::fs::File::create(&installer_path).map_err(|e| e.to_string())?;
     
     let mut downloaded = 0;
@@ -55,7 +66,7 @@ async fn download_and_install_update(app: tauri::AppHandle, url: String) -> Resu
         std::process::Command::new(&installer_path)
             .arg("/S")
             .spawn()
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| format!("Failed to start installer: {}", e))?;
     }
     
     app.exit(0);

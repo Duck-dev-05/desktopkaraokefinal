@@ -22,6 +22,21 @@ export const HistoryProvider = ({ children }: { children: ReactNode }) => {
         console.error('Failed to parse history:', err);
       }
     }
+
+    // Sync history across windows/tabs (e.g. from karaoke-player window)
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'karaoke_history' && e.newValue) {
+        try {
+          setHistory(JSON.parse(e.newValue));
+        } catch (err) {
+          console.error("Failed to parse history from storage event", err);
+        }
+      } else if (e.key === 'karaoke_history' && !e.newValue) {
+        setHistory([]); // History was cleared
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const addToHistory = (video: YoutubeVideo) => {
