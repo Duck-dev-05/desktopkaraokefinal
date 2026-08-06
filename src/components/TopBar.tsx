@@ -21,6 +21,7 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
   const [searchValue, setSearchValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<YoutubeVideo[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
@@ -31,6 +32,7 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
   const [hdmiNotice, setHdmiNotice] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
   const autoFullscreenDone = useRef(false); // prevent repeated auto-trigger
   const { isTheaterMode, hasMultipleMonitors, hasAmplifier } = useDeviceDetection();
 
@@ -41,6 +43,9 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
       }
       if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target as Node) && inputRef.current && !inputRef.current.contains(event.target as Node)) {
         setIsFocused(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setIsNotifOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -292,10 +297,28 @@ const TopBar = ({ sidebarCollapsed }: TopBarProps) => {
           <Cast size={18} />
         </button>
 
-        <button className="topbar-icon-btn" title="Thông báo">
-          <Bell size={18} />
-          <span className="notification-dot" />
-        </button>
+        <div className="topbar-user-menu" ref={notifRef}>
+          <button 
+            className={`topbar-icon-btn ${isNotifOpen ? "active" : ""}`}
+            title="Thông báo" 
+            onClick={() => setIsNotifOpen(!isNotifOpen)}
+          >
+            <Bell size={18} />
+          </button>
+          
+          {isNotifOpen && (
+            <div className="notif-dropdown animate-scale-in">
+              <div className="profile-dropdown-header">
+                <span className="dropdown-username">Thông báo</span>
+              </div>
+              <div className="dropdown-divider"></div>
+              <div className="notif-empty-state">
+                <Bell size={24} style={{ opacity: 0.5, marginBottom: '8px' }} />
+                <p>Không có thông báo mới</p>
+              </div>
+            </div>
+          )}
+        </div>
 
         {user ? (
           <div className="topbar-user-menu" ref={dropdownRef}>
