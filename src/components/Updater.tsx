@@ -4,6 +4,7 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { getVersion } from "@tauri-apps/api/app";
 import { useSettings } from "../context/SettingsContext";
+import { Rocket, Package, ArrowDownToLine, Loader2, AlertTriangle, X } from "lucide-react";
 type UpdaterState =
   | { status: "idle" }
   | { status: "checking" }
@@ -194,22 +195,12 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
     if (manual) checkUpdates(true);
   }, [manual, checkUpdates]);
 
-  // Auto install if enabled (only applies to Tauri updater)
-  useEffect(() => {
-    if (settings.autoUpdate && state.status === "available") {
-      installUpdate(state.update, state.isManual);
-    } else if (settings.autoUpdate && state.status === "github-ready") {
-      installGithubUpdate(state.url);
-    }
-  }, [settings.autoUpdate, state, installUpdate, installGithubUpdate]);
+  // Removed auto-install behavior, now it just relies on the user clicking the button to open the link
 
   // Nothing to show while idle / checking silently / up-to-date
   if (state.status === "idle" || state.status === "checking" || state.status === "up-to-date") return null;
 
-  // If autoUpdate is enabled and it's a background check, hide the UI for normal updater flow
-  if (!manual && settings.autoUpdate && (state.status === "available" || state.status === "downloading" || state.status === "installing" || state.status === "github-ready")) {
-    return null;
-  }
+
 
   const dismiss = () => {
     setState({ status: "idle" });
@@ -218,11 +209,18 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
 
   return (
     <div className="updater-overlay" role="dialog" aria-modal="true" aria-label="App update">
-      <div className="updater-card glass">
+      <div className="updater-card">
+        <button className="updater-close-btn" onClick={dismiss} aria-label="Close">
+          <X size={20} />
+        </button>
+
         {/* ── Update available ── */}
         {state.status === "available" && (
           <>
-            <div className="updater-icon">🚀</div>
+            <div className="updater-icon-wrapper">
+              <div className="updater-icon-glow"></div>
+              <Rocket className="updater-icon text-primary" size={40} />
+            </div>
             <h2 className="updater-title">Có bản cập nhật mới!</h2>
             <p className="updater-body">
               Phiên bản <strong>{state.update.version}</strong> đã sẵn sàng.
@@ -232,14 +230,17 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
               <pre className="updater-notes">{state.update.body}</pre>
             )}
             <div className="updater-actions">
-              <button className="btn-secondary" onClick={dismiss}>
+              <button className="btn-secondary updater-btn" onClick={dismiss}>
                 Nhắc sau
               </button>
               <button
-                className="btn-primary"
-                onClick={() => installUpdate(state.update, true)}
+                className="btn-primary updater-btn"
+                onClick={() => {
+                  openUrl("https://github.com/Duck-dev-05/desktopkaraokefinal/releases/latest");
+                  dismiss();
+                }}
               >
-                Cập nhật ngay
+                Tải xuống ngay
               </button>
             </div>
           </>
@@ -248,7 +249,10 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
         {/* ── GitHub Update ready to install ── */}
         {state.status === "github-ready" && (
           <>
-            <div className="updater-icon">🚀</div>
+            <div className="updater-icon-wrapper">
+              <div className="updater-icon-glow"></div>
+              <Rocket className="updater-icon text-primary" size={40} />
+            </div>
             <h2 className="updater-title">Có bản cập nhật mới!</h2>
             <p className="updater-body">
               Phiên bản <strong>{state.version}</strong> đã sẵn sàng.
@@ -258,14 +262,17 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
               <pre className="updater-notes">{state.body}</pre>
             )}
             <div className="updater-actions">
-              <button className="btn-secondary" onClick={dismiss}>
+              <button className="btn-secondary updater-btn" onClick={dismiss}>
                 Nhắc sau
               </button>
               <button
-                className="btn-primary"
-                onClick={() => installGithubUpdate(state.url)}
+                className="btn-primary updater-btn"
+                onClick={() => {
+                  openUrl(state.url);
+                  dismiss();
+                }}
               >
-                Cập nhật ngay
+                Tải xuống ngay
               </button>
             </div>
           </>
@@ -274,18 +281,21 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
         {/* ── GitHub Update available (no direct dl) ── */}
         {state.status === "github-available" && (
           <>
-            <div className="updater-icon">📦</div>
+            <div className="updater-icon-wrapper">
+              <div className="updater-icon-glow"></div>
+              <Package className="updater-icon text-primary" size={40} />
+            </div>
             <h2 className="updater-title">Có bản cập nhật mới!</h2>
             <p className="updater-body">
               Phiên bản <strong>{state.version}</strong> đã được phát hành trên GitHub.
               Vui lòng tải xuống và cài đặt thủ công.
             </p>
             <div className="updater-actions">
-              <button className="btn-secondary" onClick={dismiss}>
+              <button className="btn-secondary updater-btn" onClick={dismiss}>
                 Nhắc sau
               </button>
               <button
-                className="btn-primary"
+                className="btn-primary updater-btn"
                 onClick={() => {
                   openUrl(state.url);
                   dismiss();
@@ -297,12 +307,13 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
           </>
         )}
 
-
-
         {/* ── Downloading ── */}
         {state.status === "downloading" && (
           <>
-            <div className="updater-icon">⬇️</div>
+            <div className="updater-icon-wrapper">
+              <div className="updater-icon-glow"></div>
+              <ArrowDownToLine className="updater-icon text-accent animate-bounce" size={40} />
+            </div>
             <h2 className="updater-title">Đang tải xuống…</h2>
             <div className="updater-progress-track">
               <div
@@ -310,14 +321,17 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
                 style={{ width: `${state.progress}%` }}
               />
             </div>
-            <p className="updater-body">{state.progress}%</p>
+            <p className="updater-body" style={{ marginTop: '0.75rem', fontWeight: 600 }}>{state.progress}%</p>
           </>
         )}
 
         {/* ── Installing ── */}
         {state.status === "installing" && (
           <>
-            <div className="updater-icon">⚙️</div>
+            <div className="updater-icon-wrapper">
+              <div className="updater-icon-glow"></div>
+              <Loader2 className="updater-icon text-primary animate-spin" size={40} />
+            </div>
             <h2 className="updater-title">Đang cài đặt…</h2>
             <p className="updater-body">
               Ứng dụng sẽ tự động khởi động lại ngay bây giờ.
@@ -328,14 +342,17 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
         {/* ── Error ── */}
         {state.status === "error" && (
           <>
-            <div className="updater-icon">⚠️</div>
+            <div className="updater-icon-wrapper">
+              <div className="updater-icon-glow error-glow"></div>
+              <AlertTriangle className="updater-icon text-danger" size={40} />
+            </div>
             <h2 className="updater-title">Lỗi cập nhật</h2>
             <p className="updater-body">{state.message}</p>
             <div className="updater-actions">
-              <button className="btn-secondary" onClick={dismiss}>
+              <button className="btn-secondary updater-btn" onClick={dismiss}>
                 Đóng
               </button>
-              <button className="btn-primary" onClick={() => checkUpdates(true)}>
+              <button className="btn-primary updater-btn" onClick={() => checkUpdates(true)}>
                 Thử lại
               </button>
             </div>
@@ -351,69 +368,196 @@ export default function Updater({ manual = false, onDismiss }: UpdaterProps) {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: rgba(0, 0, 0, 0.6);
-          backdrop-filter: blur(8px);
-          animation: fadeIn 0.25s ease;
+          background: rgba(6, 4, 12, 0.75);
+          backdrop-filter: blur(16px);
+          animation: overlayFadeIn 0.3s ease-out;
         }
+        
         .updater-card {
-          width: min(440px, 90vw);
-          padding: 2rem;
-          border-radius: 20px;
+          position: relative;
+          width: min(460px, 92vw);
+          padding: 2.5rem 2rem;
+          border-radius: 24px;
           text-align: center;
-          background: rgba(20, 20, 35, 0.92);
-          border: 1px solid rgba(255,255,255,0.12);
-          box-shadow: 0 24px 64px rgba(0,0,0,0.6);
-          animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+          background: linear-gradient(145deg, rgba(19, 16, 38, 0.95), rgba(12, 10, 24, 0.98));
+          border: 1px solid rgba(168, 85, 247, 0.25);
+          box-shadow: 0 0 80px rgba(168, 85, 247, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          animation: cardSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          overflow: hidden;
         }
-        .updater-icon { font-size: 3rem; margin-bottom: 0.75rem; }
-        .updater-title {
-          font-size: 1.4rem;
-          font-weight: 700;
-          color: #fff;
-          margin: 0 0 0.5rem;
+
+        .updater-card::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 150px;
+          background: radial-gradient(circle at 50% -20%, rgba(168, 85, 247, 0.15), transparent 70%);
+          pointer-events: none;
         }
-        .updater-body {
-          color: rgba(255,255,255,0.65);
-          font-size: 0.95rem;
-          line-height: 1.6;
-          margin: 0 0 1.25rem;
-        }
-        .updater-notes {
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 10px;
-          padding: 0.75rem 1rem;
-          text-align: left;
-          font-size: 0.82rem;
-          color: rgba(255,255,255,0.5);
-          white-space: pre-wrap;
-          max-height: 120px;
-          overflow-y: auto;
-          margin-bottom: 1.25rem;
-        }
-        .updater-actions {
+
+        .updater-close-btn {
+          position: absolute;
+          top: 1.25rem;
+          right: 1.25rem;
+          background: transparent;
+          border: none;
+          color: var(--text-tertiary);
+          cursor: pointer;
+          padding: 0.5rem;
+          border-radius: 50%;
           display: flex;
-          gap: 0.75rem;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+          z-index: 10;
+        }
+
+        .updater-close-btn:hover {
+          color: var(--text-primary);
+          background: rgba(255, 255, 255, 0.05);
+        }
+
+        .updater-icon-wrapper {
+          position: relative;
+          width: 80px;
+          height: 80px;
+          margin: 0 auto 1.5rem;
+          display: flex;
+          align-items: center;
           justify-content: center;
         }
+
+        .updater-icon-glow {
+          position: absolute;
+          inset: 0;
+          background: var(--primary);
+          border-radius: 50%;
+          filter: blur(24px);
+          opacity: 0.4;
+          animation: pulseGlow 2.5s infinite alternate;
+        }
+        
+        .error-glow {
+          background: var(--danger);
+        }
+
+        .updater-icon {
+          position: relative;
+          z-index: 1;
+        }
+        
+        .text-primary { color: var(--primary-hover); }
+        .text-accent { color: var(--accent-hover); }
+        .text-danger { color: #f87171; }
+
+        .updater-title {
+          font-size: 1.75rem;
+          font-weight: 700;
+          color: var(--text-primary);
+          margin: 0 0 0.75rem;
+          letter-spacing: -0.02em;
+        }
+
+        .updater-body {
+          color: var(--text-secondary);
+          font-size: 1.05rem;
+          line-height: 1.6;
+          margin: 0 0 1.5rem;
+        }
+
+        .updater-notes {
+          background: rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
+          padding: 1rem;
+          text-align: left;
+          font-size: 0.9rem;
+          color: var(--text-secondary);
+          white-space: pre-wrap;
+          max-height: 140px;
+          overflow-y: auto;
+          margin-bottom: 1.75rem;
+          box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Custom scrollbar for notes */
+        .updater-notes::-webkit-scrollbar { width: 6px; }
+        .updater-notes::-webkit-scrollbar-track { background: transparent; }
+        .updater-notes::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        .updater-notes::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        .updater-actions {
+          display: flex;
+          gap: 1rem;
+          justify-content: center;
+          margin-top: 2rem;
+        }
+        
+        .updater-btn {
+          flex: 1;
+          padding: 0.75rem 1.5rem;
+          font-weight: 600;
+          font-size: 1rem;
+          border-radius: 12px;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         .updater-progress-track {
           width: 100%;
-          height: 8px;
-          background: rgba(255,255,255,0.1);
+          height: 12px;
+          background: rgba(0, 0, 0, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.05);
           border-radius: 999px;
           overflow: hidden;
           margin-bottom: 0.5rem;
+          box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
         }
+
         .updater-progress-fill {
           height: 100%;
-          background: linear-gradient(90deg, var(--primary, #a855f7), #ec4899);
+          background: linear-gradient(90deg, var(--primary), var(--secondary));
           border-radius: 999px;
-          transition: width 0.2s ease;
+          transition: width 0.3s ease;
+          position: relative;
+          overflow: hidden;
         }
-        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(30px) scale(0.95) }
-          to   { opacity: 1; transform: translateY(0)   scale(1)    }
+        
+        .updater-progress-fill::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+          transform: translateX(-100%);
+          animation: shimmer 1.5s infinite;
+        }
+
+        .animate-spin { animation: spin 2s linear infinite; }
+        .animate-bounce { animation: bounce 1s infinite alternate; }
+
+        @keyframes overlayFadeIn { 
+          from { opacity: 0; backdrop-filter: blur(0px); } 
+          to { opacity: 1; backdrop-filter: blur(16px); } 
+        }
+        
+        @keyframes cardSlideUp {
+          from { opacity: 0; transform: translateY(40px) scale(0.95); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        @keyframes pulseGlow {
+          from { opacity: 0.3; transform: scale(0.8); }
+          to { opacity: 0.6; transform: scale(1.1); }
+        }
+        
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes bounce { 
+          from { transform: translateY(-4px); } 
+          to { transform: translateY(4px); } 
+        }
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
         }
       `}</style>
     </div>
