@@ -1,0 +1,383 @@
+/* ═══════════════════════════════════════════════════════════
+   PREMIUM PAGE — Premium v2
+   ═══════════════════════════════════════════════════════════ */
+
+.premium-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px;
+  min-height: 100%;
+  background: radial-gradient(circle at top center, rgba(30, 20, 50, 0.8) 0%, rgba(10, 10, 15, 1) 100%);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn var(--transition-slow) ease-out both;
+}
+
+/* ─── Ambient Glow ──────────────────────────── */
+.premium-ambient-glow {
+  position: absolute;
+  top: -180px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(240, 147, 251, 0.14) 0%, rgba(245, 87, 108, 0.06) 40%, transparent 70%);
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+  filter: blur(40px);
+  animation: float 8s ease-in-out infinite;
+}
+
+/* ─── Header ────────────────────────────────── */
+.premium-header {
+  text-align: center;
+  margin-bottom: 60px;
+  position: relative;
+  z-index: 1;
+}
+
+.premium-title {
+  font-size: 3.5rem;
+  font-weight: 900;
+  margin-bottom: 15px;
+  background: linear-gradient(135deg, #ffffff 0%, #d8b4fe 60%, #f472b6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.04em;
+}
+
+.premium-accent {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.premium-subtitle {
+  font-size: 1.05rem;
+  color: rgba(196, 181, 253, 0.7);
+  max-width: 520px;
+  margin: 0 auto;
+  font-weight: 400;
+  line-height: 1.65;
+}
+
+/* ─── Cards Container ───────────────────────── */
+.premium-cards-container {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  align-items: stretch;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 1360px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Base Card ─────────────────────────────── */
+.premium-card {
+  flex: 1;
+  min-width: 240px;
+  max-width: 300px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-2xl);
+  padding: 36px 28px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+/* Top shimmer line on each card */
+.premium-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  pointer-events: none;
+}
+
+/* Free plan */
+.premium-card:nth-child(1) {
+  border-color: rgba(156, 163, 175, 0.15);
+}
+.premium-card:nth-child(1):hover {
+  border-color: rgba(156, 163, 175, 0.4);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(156, 163, 175, 0.08);
+}
+
+/* Premium plan — purple */
+.premium-card:nth-child(2) {
+  border-color: rgba(168, 85, 247, 0.2);
+}
+.premium-card:nth-child(2):hover {
+  border-color: rgba(168, 85, 247, 0.55);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(168, 85, 247, 0.15);
+  background: rgba(168, 85, 247, 0.04);
+}
+
+/* VIP plan — cyan */
+.premium-card:nth-child(3) {
+  border-color: rgba(79, 172, 254, 0.2);
+}
+.premium-card:nth-child(3):hover {
+  border-color: rgba(79, 172, 254, 0.55);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(79, 172, 254, 0.15);
+  background: rgba(79, 172, 254, 0.04);
+}
+
+.premium-card:hover {
+  transform: translateY(-12px);
+}
+
+/* ─── Elite Card ────────────────────────────── */
+.elite-card {
+  transform: scale(1.04);
+  background: rgba(245, 87, 108, 0.04);
+  border: 1px solid rgba(245, 87, 108, 0.32);
+  box-shadow: 0 16px 50px rgba(245, 87, 108, 0.18), 0 0 60px rgba(245, 87, 108, 0.06);
+  z-index: 2;
+}
+
+.elite-card::before {
+  background: linear-gradient(90deg, transparent, rgba(245, 87, 108, 0.35), rgba(240, 147, 251, 0.25), transparent);
+  animation: shimmer-border 3s ease-in-out infinite;
+  background-size: 200% 100%;
+}
+
+.elite-card:hover {
+  transform: scale(1.04) translateY(-14px);
+  border-color: rgba(245, 87, 108, 0.65);
+  box-shadow: 0 30px 60px rgba(245, 87, 108, 0.35), 0 0 80px rgba(245, 87, 108, 0.2);
+}
+
+/* ─── Elite Badge Top ───────────────────────── */
+.elite-badge-top {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, #f093fb, #f5576c);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 6px 18px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  box-shadow: 0 4px 20px rgba(245, 87, 108, 0.5);
+  white-space: nowrap;
+  background-size: 200% 100%;
+  animation: badge-shimmer 2s linear infinite;
+}
+
+/* ─── Card Header ───────────────────────────── */
+.card-header-top {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.card-icon-wrapper {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 18px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+}
+
+.premium-card:hover .card-icon-wrapper {
+  transform: scale(1.1) rotate(-4deg);
+}
+
+.card-icon {
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
+}
+
+.free-icon   { color: #9ca3af; }
+.ticket-icon { color: #4facfe; }
+.elite-icon  { color: #f5576c; filter: drop-shadow(0 0 12px rgba(245, 87, 108, 0.7)); }
+.vip-icon    { color: #f093fb; filter: drop-shadow(0 0 10px rgba(240, 147, 251, 0.6)); }
+
+.card-plan-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+/* ─── Card Pricing ──────────────────────────── */
+.card-pricing {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin-bottom: 28px;
+  gap: 2px;
+}
+
+.card-currency {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: rgba(196, 181, 253, 0.7);
+  margin-top: 8px;
+}
+
+.card-price-amount {
+  font-size: 3.2rem;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.card-price-interval {
+  font-size: 1rem;
+  color: rgba(156, 163, 175, 0.8);
+  align-self: flex-end;
+  margin-bottom: 6px;
+}
+
+/* ─── Features List ─────────────────────────── */
+.card-features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 36px;
+  flex: 1;
+}
+
+.card-feature-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 0.9rem;
+  color: rgba(224, 224, 240, 0.9);
+  font-weight: 500;
+}
+
+.check-icon {
+  color: #4facfe;
+  flex-shrink: 0;
+}
+
+.elite-check {
+  color: #f5576c;
+  filter: drop-shadow(0 0 5px rgba(245, 87, 108, 0.5));
+}
+
+/* ─── Subscribe Button ──────────────────────── */
+.btn-subscribe-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  letter-spacing: 0.01em;
+}
+
+.btn-subscribe-card:hover {
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.btn-subscribe-card:active { transform: scale(0.98); }
+
+.btn-zap-icon {
+  transition: transform var(--transition-base), color var(--transition-base);
+}
+
+.btn-subscribe-card:hover .btn-zap-icon {
+  transform: scale(1.25) rotate(15deg);
+  color: #fbbf24;
+}
+
+/* Elite button */
+.btn-elite {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border: none;
+  box-shadow: 0 6px 24px rgba(245, 87, 108, 0.45);
+}
+
+.btn-elite:hover {
+  background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+  box-shadow: 0 12px 36px rgba(245, 87, 108, 0.65);
+  border-color: transparent;
+}
+
+/* Active plan state */
+.btn-active-plan {
+  background: rgba(79, 172, 254, 0.12) !important;
+  color: #4facfe !important;
+  border-color: rgba(79, 172, 254, 0.38) !important;
+  cursor: default !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.elite-card .btn-active-plan {
+  background: rgba(245, 87, 108, 0.12) !important;
+  color: #f5576c !important;
+  border-color: rgba(245, 87, 108, 0.38) !important;
+}
+
+/* ─── Active Subscription Banner ──────────── */
+.active-subscription-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  background: rgba(168, 85, 247, 0.08);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-full);
+  margin: -24px auto 44px auto;
+  backdrop-filter: blur(24px);
+  position: relative;
+  z-index: 1;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  box-shadow: 0 8px 32px rgba(168, 85, 247, 0.12);
+  animation: slideUp var(--transition-slow) ease-out both;
+}
+
+.active-subscription-banner strong {
+  color: #ffffff;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.banner-icon {
+  color: #f093fb;
+  filter: drop-shadow(0 0 8px rgba(240, 147, 251, 0.7));
+  animation: float 3s ease-in-out infinite;
+}

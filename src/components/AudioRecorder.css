@@ -1,0 +1,89 @@
+.audio-recorder-container {
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: var(--space-6);
+  transition: all 0.3s ease;
+}
+
+.recorder-active-view, .recorder-preview-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.recording-indicator {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.recording-indicator.pulse {
+  background: rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  animation: pulse-red 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+@keyframes pulse-red {
+  to {
+    box-shadow: 0 0 0 30px rgba(239, 68, 68, 0);
+  }
+}
+
+.recording-time {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  letter-spacing: 2px;
+}
+
+.recorder-controls {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+}
+
+.btn-round {
+  border-radius: 99px;
+  padding: var(--space-3) var(--space-6);
+}
+
+.recorder-preview-view h3 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.audio-preview-element {
+  width: 100%;
+  max-width: 400px;
+  margin: var(--space-4) 0;
+}
+
+.preview-controls {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
