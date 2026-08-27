@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Flame, Globe, Music2, Mic2, ListMusic, Crown, Users, Play, Radio } from "lucide-react";
+import { Flame, Globe, Music2, Mic2, ListMusic, Crown, Users, Play, Radio, UserCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import SongCard from "../components/SongCard";
 import { searchYoutubeKaraoke, searchYoutubePlaylists, YoutubeVideo, YoutubePlaylist } from "../api/youtube";
@@ -7,11 +7,21 @@ import { useAuth } from "../context/AuthContext";
 import { getRecordingsForUser } from "../db";
 import "./Home.css";
 
+const SINGER_NAMES = [
+  { name: "Sơn Tùng M-TP", genre: "V-Pop / Dance" },
+  { name: "Mỹ Tâm", genre: "Nhạc Trẻ / Pop" },
+  { name: "Đen Vâu", genre: "Rap / Hip Hop" },
+  { name: "Taylor Swift", genre: "US-UK / Pop" },
+  { name: "Vũ", genre: "Indie / Pop Ballad" },
+  { name: "Bruno Mars", genre: "R&B / Soul" },
+];
+
 const Home = () => {
   const [trendingSongs, setTrendingSongs] = useState<YoutubeVideo[]>([]);
   const [classicSongs, setClassicSongs] = useState<YoutubeVideo[]>([]);
   const [globalSongs, setGlobalSongs] = useState<YoutubeVideo[]>([]);
   const [playlists, setPlaylists] = useState<YoutubePlaylist[]>([]);
+  const [featuredSingers, setFeaturedSingers] = useState<{name: string, genre: string, avatar: string}[]>([]);
   const [activeRooms, setActiveRooms] = useState<any[]>([]); // Empty array for real active rooms
   const [isLoading, setIsLoading] = useState(true);
   const [userSongCount, setUserSongCount] = useState<number | null>(null);
@@ -21,17 +31,31 @@ const Home = () => {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const [trending, classic, global, youtubePlaylists] = await Promise.all([
+        const singersPromises = SINGER_NAMES.map(async (singer) => {
+          try {
+            const results = await searchYoutubeKaraoke(`${singer.name} karaoke`);
+            if (results && results.length > 0) {
+              return { ...singer, avatar: results[0].thumbnail };
+            }
+          } catch(e) {
+            console.error(`Failed to fetch real data for singer ${singer.name}:`, e);
+          }
+          return { ...singer, avatar: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=300&auto=format&fit=crop" };
+        });
+
+        const [trending, classic, global, youtubePlaylists, singers] = await Promise.all([
           searchYoutubeKaraoke("nhạc trẻ việt nam hot nhất"),
           searchYoutubeKaraoke("nhạc trữ tình bolero karaoke"),
           searchYoutubeKaraoke("us uk hit songs karaoke"),
-          searchYoutubePlaylists("nhạc trẻ remix karaoke playlist")
+          searchYoutubePlaylists("nhạc trẻ remix karaoke playlist"),
+          Promise.all(singersPromises)
         ]);
         setTrendingSongs(trending);
         setClassicSongs(classic);
         setGlobalSongs(global);
 
         setPlaylists(youtubePlaylists);
+        setFeaturedSingers(singers);
         setActiveRooms([]);
       } catch (err) {
         console.error(err);
@@ -203,6 +227,44 @@ const Home = () => {
           </div>
         </section>
       )}
+
+      {/* ─── Ca Sĩ Nổi Bật (Featured Singers) ───────── */}
+      <section className="song-section animate-fade-in stagger-2">
+        <div className="section-header">
+          <div className="section-title">
+            <div className="section-title-pill" style={{ background: "linear-gradient(180deg, #8b5cf6, #3b82f6)" }} />
+            <UserCheck size={20} color="#8b5cf6" />
+            Ca Sĩ Nổi Bật
+          </div>
+          <button className="btn btn-ghost see-all-btn" onClick={() => navigate('/artist')}>Xem tất cả →</button>
+        </div>
+        <div className="featured-singers-grid-home">
+          {featuredSingers.length > 0 ? (
+            featuredSingers.map((singer) => (
+              <div
+                key={singer.name}
+                className="singer-card-home"
+                onClick={() => navigate(`/artist?name=${encodeURIComponent(singer.name)}`)}
+              >
+                <div className="singer-avatar-wrap-home">
+                  <img src={singer.avatar} alt={singer.name} />
+                  <div className="singer-overlay-home">
+                    <Mic2 size={24} color="white" />
+                  </div>
+                </div>
+                <div className="singer-info-home">
+                  <h3 className="singer-card-name-home">{singer.name}</h3>
+                  <p className="singer-card-genre-home">{singer.genre}</p>
+                </div>
+              </div>
+            ))
+          ) : (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="skeleton" style={{ aspectRatio: '1/1.2', borderRadius: '20px' }}></div>
+            ))
+          )}
+        </div>
+      </section>
 
       {/* ─── Active Party Rooms ─────────────────────── */}
       {activeRooms.length > 0 && (
