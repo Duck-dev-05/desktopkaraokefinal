@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Flame, Globe, Music2, Mic2, ListMusic, Crown, Users, Play, Radio, UserCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import SongCard from "../components/SongCard";
-import { searchYoutubeKaraoke, searchYoutubePlaylists, YoutubeVideo, YoutubePlaylist } from "../api/youtube";
+import { searchYoutubeKaraoke, searchYoutubePlaylists, searchYoutubeChannelAvatar, YoutubeVideo, YoutubePlaylist } from "../api/youtube";
 import { useAuth } from "../context/AuthContext";
 import { getRecordingsForUser } from "../db";
 import "./Home.css";
@@ -33,9 +33,9 @@ const Home = () => {
       try {
         const singersPromises = SINGER_NAMES.map(async (singer) => {
           try {
-            const results = await searchYoutubeKaraoke(`${singer.name} karaoke`);
-            if (results && results.length > 0) {
-              return { ...singer, avatar: results[0].thumbnail };
+            const avatarUrl = await searchYoutubeChannelAvatar(`${singer.name} official`);
+            if (avatarUrl) {
+              return { ...singer, avatar: avatarUrl };
             }
           } catch(e) {
             console.error(`Failed to fetch real data for singer ${singer.name}:`, e);

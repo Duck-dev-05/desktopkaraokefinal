@@ -100,3 +100,26 @@ export const searchYoutubePlaylists = async (query: string): Promise<YoutubePlay
   console.error("All YouTube API keys failed. Last error:", lastError);
   return [];
 };
+
+export const searchYoutubeChannelAvatar = async (channelName: string): Promise<string | null> => {
+  const apiKeysEnv = import.meta.env.VITE_YOUTUBE_API_KEY;
+  if (!apiKeysEnv) return null;
+  
+  const apiKeys = apiKeysEnv.split(',').map((k: string) => k.trim()).filter((k: string) => k.length > 0);
+  if (apiKeys.length === 0) return null;
+
+  for (const apiKey of apiKeys) {
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(channelName)}&type=channel&key=${apiKey}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) continue;
+      const data = await response.json();
+      if (data.items && data.items.length > 0) {
+        return data.items[0].snippet.thumbnails.high?.url || data.items[0].snippet.thumbnails.medium?.url || data.items[0].snippet.thumbnails.default?.url;
+      }
+    } catch (e) {
+      console.error(`Failed to fetch channel avatar for ${channelName}:`, e);
+    }
+  }
+  return null;
+};
