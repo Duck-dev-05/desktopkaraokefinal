@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
+﻿/* ═══════════════════════════════════════════════════════════
    CHECKOUT MODAL — Premium Dark Theme
    ═══════════════════════════════════════════════════════════ */
 
@@ -42,7 +42,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.5), rgba(245, 87, 108, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(157, 78, 221, 0.5), rgba(245, 87, 108, 0.4), transparent);
 }
 
 /* ─── Close Button ───────────────────────────── */
@@ -150,9 +150,9 @@
 }
 
 .stripe-card-container:focus-within {
-  border-color: rgba(168, 85, 247, 0.6);
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.12);
-  background: rgba(168, 85, 247, 0.04);
+  border-color: rgba(157, 78, 221, 0.6);
+  box-shadow: 0 0 0 3px rgba(157, 78, 221, 0.12);
+  background: rgba(157, 78, 221, 0.04);
 }
 
 .standard-input {
@@ -171,15 +171,15 @@
 .standard-input::placeholder { color: rgba(156, 163, 175, 0.5); }
 
 .standard-input:focus {
-  border-color: rgba(168, 85, 247, 0.6);
-  background: rgba(168, 85, 247, 0.04);
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.12);
+  border-color: rgba(157, 78, 221, 0.6);
+  background: rgba(157, 78, 221, 0.04);
+  box-shadow: 0 0 0 3px rgba(157, 78, 221, 0.12);
 }
 
 /* ─── Pay Button ─────────────────────────────── */
 .btn-pay {
   width: 100%;
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c026d3 100%);
+  background: linear-gradient(135deg, #6a1fa8 0%, #9d4edd 50%, #c026d3 100%);
   color: white;
   border: none;
   padding: 15px;
@@ -192,13 +192,13 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 4px 20px rgba(157, 78, 221, 0.4);
   letter-spacing: 0.01em;
 }
 
 .btn-pay:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(168, 85, 247, 0.55);
+  box-shadow: 0 8px 30px rgba(157, 78, 221, 0.55);
 }
 
 .btn-pay:active:not(:disabled) { transform: scale(0.98); }
@@ -328,8 +328,8 @@
 /* ─── Plan Summary Card ──────────────────────── */
 .success-plan-card {
   width: 100%;
-  background: rgba(168, 85, 247, 0.06);
-  border: 1px solid rgba(168, 85, 247, 0.2);
+  background: rgba(157, 78, 221, 0.06);
+  border: 1px solid rgba(157, 78, 221, 0.2);
   border-radius: 14px;
   padding: 16px 18px;
   margin-bottom: 20px;
@@ -345,7 +345,7 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.success-plan-icon { color: #c084fc; }
+.success-plan-icon { color: #c77dff; }
 
 .success-plan-name {
   font-size: 0.95rem;

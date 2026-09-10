@@ -1,4 +1,4 @@
-.custom-select-container {
+﻿.custom-select-container {
   position: relative;
   width: 100%;
 }
@@ -22,12 +22,12 @@
 
 .custom-select-trigger:hover,
 .custom-select-trigger.open {
-  background: rgba(168, 85, 247, 0.08);
-  border-color: rgba(168, 85, 247, 0.4);
+  background: rgba(157, 78, 221, 0.08);
+  border-color: rgba(157, 78, 221, 0.4);
 }
 
 .custom-select-trigger.open {
-  box-shadow: 0 0 15px rgba(168, 85, 247, 0.15);
+  box-shadow: 0 0 15px rgba(157, 78, 221, 0.15);
 }
 
 .custom-select-value {
@@ -65,7 +65,7 @@
   overflow-y: auto;
   box-shadow: 
     0 10px 30px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(168, 85, 247, 0.1);
+    0 0 0 1px rgba(157, 78, 221, 0.1);
 }
 
 /* Custom Scrollbar for dropdown */
@@ -76,11 +76,11 @@
   background: transparent;
 }
 .custom-select-dropdown::-webkit-scrollbar-thumb {
-  background: rgba(168, 85, 247, 0.3);
+  background: rgba(157, 78, 221, 0.3);
   border-radius: 3px;
 }
 .custom-select-dropdown::-webkit-scrollbar-thumb:hover {
-  background: rgba(168, 85, 247, 0.5);
+  background: rgba(157, 78, 221, 0.5);
 }
 
 .custom-select-item {
@@ -99,12 +99,12 @@
 }
 
 .custom-select-item:hover {
-  background: rgba(168, 85, 247, 0.1);
+  background: rgba(157, 78, 221, 0.1);
   color: var(--text-primary);
 }
 
 .custom-select-item.selected {
-  background: rgba(168, 85, 247, 0.15);
+  background: rgba(157, 78, 221, 0.15);
   color: var(--primary);
   font-weight: 600;
   border-left: 3px solid var(--primary);

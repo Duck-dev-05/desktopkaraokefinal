@@ -65,13 +65,13 @@ const NavItem = ({
       onClick={(e) => disabled && e.preventDefault()}
       title={collapsed ? label : undefined}
     >
-    <span className="nav-icon">{icon}</span>
-    {!collapsed && (
-      <>
-        <span className="nav-label">{label}</span>
-        {badge && <span className="nav-badge">{badge}</span>}
-      </>
-    )}
+      <span className="nav-icon">{icon}</span>
+      {!collapsed && (
+        <>
+          <span className="nav-label">{label}</span>
+          {badge && <span className="nav-badge">{badge}</span>}
+        </>
+      )}
       {collapsed && badge && <span className="nav-badge-dot" />}
     </NavLink>
   );

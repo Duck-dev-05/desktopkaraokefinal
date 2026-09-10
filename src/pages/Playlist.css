@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
+﻿/* ═══════════════════════════════════════════════════════════
    PLAYLIST PAGE — Premium Redesign
    ═══════════════════════════════════════════════════════════ */
 
@@ -105,7 +105,7 @@
   font-family: var(--pl-font);
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #c084fc;
+  color: #c77dff;
   background: rgba(168,85,247,0.12);
   border: 1px solid rgba(168,85,247,0.3);
   padding: 4px 12px;
@@ -164,7 +164,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #6a1fa8 0%, #9d4edd 50%, #e040a0 100%);
   color: #fff;
   border: none;
   border-radius: 999px;
@@ -292,11 +292,11 @@
 }
 
 .pl-num-active {
-  color: #a855f7;
+  color: #9d4edd;
 }
 
 .pl-icon-playing {
-  color: #a855f7;
+  color: #9d4edd;
   animation: beat 0.8s ease-in-out infinite alternate;
 }
 
@@ -364,7 +364,7 @@
 }
 
 .pl-row-title--active {
-  color: #c084fc !important;
+  color: #c77dff !important;
 }
 
 .pl-row-artist {
@@ -420,12 +420,12 @@
 }
 
 .pl-row-like:hover {
-  color: #ec4899;
+  color: #e040a0;
   transform: scale(1.2);
 }
 
 .pl-row-like.liked {
-  color: #ec4899;
+  color: #e040a0;
 }
 
 .pl-row-dur {

@@ -1,4 +1,4 @@
-.local-media-page {
+﻿.local-media-page {
   padding-bottom: 120px;
 }
 
@@ -40,7 +40,7 @@
   gap: 1rem;
 }
 .local-upload-card:hover {
-  border-color: #a855f7;
+  border-color: #9d4edd;
   background: rgba(168,85,247,0.05);
 }
 
@@ -52,7 +52,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a855f7;
+  color: #9d4edd;
 }
 
 .local-player-wrapper {

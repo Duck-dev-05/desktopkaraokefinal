@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
+﻿/* ═══════════════════════════════════════════════════════════
    PREMIUM PAGE — Premium v2
    ═══════════════════════════════════════════════════════════ */
 
@@ -43,7 +43,7 @@
   font-size: 3.5rem;
   font-weight: 900;
   margin-bottom: 15px;
-  background: linear-gradient(135deg, #ffffff 0%, #d8b4fe 60%, #f472b6 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #d8b4fe 60%, #f06cbb 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -121,12 +121,12 @@
 
 /* Premium plan — purple */
 .premium-card:nth-child(2) {
-  border-color: rgba(168, 85, 247, 0.2);
+  border-color: rgba(157, 78, 221, 0.2);
 }
 .premium-card:nth-child(2):hover {
-  border-color: rgba(168, 85, 247, 0.55);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(168, 85, 247, 0.15);
-  background: rgba(168, 85, 247, 0.04);
+  border-color: rgba(157, 78, 221, 0.55);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(157, 78, 221, 0.15);
+  background: rgba(157, 78, 221, 0.04);
 }
 
 /* VIP plan — cyan */
@@ -356,8 +356,8 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
-  background: rgba(168, 85, 247, 0.08);
-  border: 1px solid rgba(168, 85, 247, 0.25);
+  background: rgba(157, 78, 221, 0.08);
+  border: 1px solid rgba(157, 78, 221, 0.25);
   padding: var(--space-4) var(--space-8);
   border-radius: var(--radius-full);
   margin: -24px auto 44px auto;
@@ -366,7 +366,7 @@
   z-index: 1;
   font-size: 0.95rem;
   color: var(--text-secondary);
-  box-shadow: 0 8px 32px rgba(168, 85, 247, 0.12);
+  box-shadow: 0 8px 32px rgba(157, 78, 221, 0.12);
   animation: slideUp var(--transition-slow) ease-out both;
 }
 

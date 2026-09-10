@@ -1,4 +1,4 @@
-/* ═══════════════════════════════════════════════════════════
+﻿/* ═══════════════════════════════════════════════════════════
    DOWNLOADS PAGE — Premium v2
    ═══════════════════════════════════════════════════════════ */
 
@@ -51,7 +51,7 @@
   background: var(--bg-card-hover);
   border-color: var(--border-neon);
   transform: translateX(4px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(168, 85, 247, 0.07);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(157, 78, 221, 0.07);
 }
 
 .download-item:hover::before {

@@ -59,12 +59,16 @@ const SongCard = ({ id, title, artist, coverUrl }: SongCardProps) => {
 
   return (
     <div className={`song-card ${currentVideo?.id === String(id) ? 'is-playing' : ''}`} onClick={handlePlay}>
-      <img src={coverUrl} alt={title} className="card-image" />
+      <img src={coverUrl} alt={title} className="card-image" loading="lazy" />
       <div className="card-gradient-overlay"></div>
+      <div className="card-glow"></div>
+
+      {/* Playing ring */}
+      {currentVideo?.id === String(id) && <div className="playing-ring" />}
       
       {/* Play/Queue Button (Center) */}
       <button className="play-overlay btn" title={currentVideo && id ? "Thêm vào Hàng đợi" : "Phát"}>
-        {currentVideo && id ? <Plus size={28} color="white" /> : <Play size={24} fill="white" color="white" />}
+        {currentVideo && id ? <Plus size={26} color="white" /> : <Play size={22} fill="white" color="white" />}
       </button>
 
       {/* Download Button (Top Right) */}
@@ -74,7 +78,7 @@ const SongCard = ({ id, title, artist, coverUrl }: SongCardProps) => {
         title="Tải xuống để hát ngoại tuyến"
         disabled={isDownloading}
       >
-        {isDownloading ? <Loader2 size={18} className="spin" color="white" /> : <Download size={18} color="white" />}
+        {isDownloading ? <Loader2 size={16} className="spin" color="white" /> : <Download size={16} color="white" />}
       </button>
 
       <div className="card-content">

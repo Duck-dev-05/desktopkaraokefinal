@@ -1,4 +1,4 @@
-/* ════════════════════════════════════════════
+﻿/* ════════════════════════════════════════════
    Duets Page
 ════════════════════════════════════════════ */
 
@@ -12,8 +12,8 @@
   border-radius: var(--radius-2xl);
   padding: 2.5rem 2rem;
   margin-bottom: 2.5rem;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(99, 102, 241, 0.08) 60%, transparent 100%);
-  border: 1px solid rgba(168, 85, 247, 0.2);
+  background: linear-gradient(135deg, rgba(157, 78, 221, 0.15) 0%, rgba(99, 102, 241, 0.08) 60%, transparent 100%);
+  border: 1px solid rgba(157, 78, 221, 0.2);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -29,7 +29,7 @@
   width: 280px;
   height: 280px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(157, 78, 221, 0.18) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -44,13 +44,13 @@
   width: 60px;
   height: 60px;
   border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, #a855f7, #6366f1);
+  background: linear-gradient(135deg, #9d4edd, #6366f1);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 8px 24px rgba(157, 78, 221, 0.4);
 }
 
 .duets-hero-content h1 {
@@ -67,7 +67,7 @@
 .duets-label-badge {
   font-size: 0.9rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #a855f7, #6366f1);
+  background: linear-gradient(135deg, #9d4edd, #6366f1);
   color: #fff;
   padding: 3px 12px;
   border-radius: var(--radius-full);
@@ -128,7 +128,7 @@
 
 .spin-icon {
   animation: spin 1s linear infinite;
-  color: #a855f7;
+  color: #9d4edd;
 }
 
 @keyframes spin {
@@ -145,7 +145,7 @@
   gap: 1rem;
   background: var(--bg-card);
   border-radius: var(--radius-2xl);
-  border: 1px dashed rgba(168, 85, 247, 0.3);
+  border: 1px dashed rgba(157, 78, 221, 0.3);
 }
 
 .duets-empty-icon {
@@ -189,8 +189,8 @@
 
 .duet-card:hover {
   transform: translateY(-5px);
-  border-color: rgba(168, 85, 247, 0.4);
-  box-shadow: 0 12px 40px rgba(168, 85, 247, 0.15);
+  border-color: rgba(157, 78, 221, 0.4);
+  box-shadow: 0 12px 40px rgba(157, 78, 221, 0.15);
 }
 
 /* Thumbnail */
@@ -221,7 +221,7 @@
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, rgba(168,85,247,0.2), rgba(99,102,241,0.1));
-  color: rgba(168, 85, 247, 0.5);
+  color: rgba(157, 78, 221, 0.5);
 }
 
 .duet-thumb-overlay {
@@ -271,8 +271,8 @@
   height: 38px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(168, 85, 247, 0.5);
-  box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+  border: 2px solid rgba(157, 78, 221, 0.5);
+  box-shadow: 0 0 10px rgba(157, 78, 221, 0.3);
   flex-shrink: 0;
 }
 
@@ -290,13 +290,13 @@
 
 .part-badge {
   display: inline-block;
-  background: rgba(168, 85, 247, 0.12);
-  color: #a855f7;
+  background: rgba(157, 78, 221, 0.12);
+  color: #9d4edd;
   font-size: 0.7rem;
   padding: 2px 8px;
   border-radius: var(--radius-full);
   font-weight: 700;
-  border: 1px solid rgba(168, 85, 247, 0.25);
+  border: 1px solid rgba(157, 78, 221, 0.25);
   width: fit-content;
 }
 
@@ -358,14 +358,14 @@
 }
 
 .duet-btn-sing {
-  background: linear-gradient(135deg, #a855f7, #7c3aed);
+  background: linear-gradient(135deg, #9d4edd, #6a1fa8);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
+  box-shadow: 0 4px 14px rgba(157, 78, 221, 0.35);
 }
 
 .duet-btn-sing:hover {
   background: linear-gradient(135deg, #9333ea, #6d28d9);
-  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5);
+  box-shadow: 0 6px 20px rgba(157, 78, 221, 0.5);
   transform: translateY(-1px);
 }
 
@@ -381,7 +381,7 @@
   align-items: center;
   gap: 5px;
   font-size: 0.72rem;
-  color: #a855f7;
+  color: #9d4edd;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
