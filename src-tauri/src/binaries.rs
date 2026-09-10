@@ -52,13 +52,17 @@ fn find_binary(name: &str) -> Option<PathBuf> {
         vec![
             PathBuf::from("/usr/local/bin"),
             PathBuf::from("/opt/homebrew/bin"),
+            PathBuf::from("/opt/homebrew/opt/ffmpeg/bin"),
             PathBuf::from("/usr/bin"),
+            PathBuf::from("/opt/local/bin"),
         ]
     } else {
         vec![
             PathBuf::from("/usr/local/bin"),
             PathBuf::from("/usr/bin"),
             PathBuf::from("/snap/bin"),
+            PathBuf::from("/usr/local/ffmpeg/bin"),
+            PathBuf::from("/opt/ffmpeg/bin"),
         ]
     };
     
@@ -95,15 +99,20 @@ For Windows users:
     } else if cfg!(target_os = "macos") {
         r#"
 For macOS users:
-Run: brew install ffmpeg yt-dlp
-Or download manually and place in /usr/local/bin/
+Using Homebrew: brew install ffmpeg yt-dlp
+Or download from:
+- ffmpeg: https://evermeet.cx/ffmpeg/
+- yt-dlp: https://github.com/yt-dlp/yt-dlp/releases/latest
+Place in /usr/local/bin/ or /opt/homebrew/bin/
 "#
     } else {
         r#"
 For Linux users:
 Ubuntu/Debian: sudo apt install ffmpeg yt-dlp
 Fedora/RHEL: sudo dnf install ffmpeg yt-dlp
-Or: pip install yt-dlp
+Arch Linux: sudo pacman -S ffmpeg yt-dlp
+Or using pip: pip install yt-dlp
+For ffmpeg: Install from your distribution's package manager
 "#
     }
 }

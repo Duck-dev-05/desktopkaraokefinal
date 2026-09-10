@@ -111,6 +111,15 @@ fn check_binaries() -> Result<(bool, bool, String), String> {
 }
 
 #[tauri::command]
+fn get_binary_paths() -> Result<(Option<String>, Option<String>), String> {
+    let ffmpeg_path = binaries::get_ffmpeg_path()
+        .map(|p| p.to_string_lossy().to_string());
+    let yt_dlp_path = binaries::get_yt_dlp_path()
+        .map(|p| p.to_string_lossy().to_string());
+    Ok((ffmpeg_path, yt_dlp_path))
+}
+
+#[tauri::command]
 async fn download_video(app_handle: tauri::AppHandle, video_id: String) -> Result<String, String> {
     // Use the binary helper to find yt-dlp
     let ytdlp_path = binaries::get_yt_dlp_path()
@@ -726,6 +735,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             greet,
             check_binaries,
+            get_binary_paths,
             download_video,
             import_local_file,
             save_audio_recording,

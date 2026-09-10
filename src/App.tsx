@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { invoke } from '@tauri-apps/api/core';
 import { AuthProvider } from "./context/AuthContext";
 import { SettingsProvider } from "./context/SettingsContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -31,9 +32,11 @@ import RemoteControl from "./components/RemoteControl";
 import ErrorBoundary from "./components/ErrorBoundary";
 import NetworkStatus from "./components/NetworkStatus";
 import Updater, { UpdaterProvider } from "./components/Updater";
+import BinaryChecker from "./components/BinaryChecker";
 
 function App() {
   const [isPlayerWindow, setIsPlayerWindow] = useState(false);
+  const [showBinaryChecker, setShowBinaryChecker] = useState(false);
 
   useEffect(() => {
     initDB().then(() => console.log("Database initialized")).catch(console.error);
@@ -45,7 +48,24 @@ function App() {
         setIsPlayerWindow(true);
       }
     }
+    
+    // Check for binary dependencies (only in Tauri environment)
+    if (window.__TAURI_INTERNALS__) {
+      checkBinaries();
+    }
   }, []);
+
+  const checkBinaries = async () => {
+    try {
+      const [ffmpeg, yt_dlp] = await invoke<[boolean, boolean]>('check_binaries');
+      // Show checker if either binary is missing
+      if (!ffmpeg || !yt_dlp) {
+        setShowBinaryChecker(true);
+      }
+    } catch (error) {
+      console.error('Failed to check binaries:', error);
+    }
+  };
 
   return (
     <ErrorBoundary>
@@ -56,6 +76,7 @@ function App() {
               <QueueProvider>
                 <HistoryProvider>
                   <PartyProvider>
+                    {showBinaryChecker && <BinaryChecker onClose={() => setShowBinaryChecker(false)} />}
                     {isPlayerWindow ? (
                       <GlobalPlayer />
                     ) : (
