@@ -40,3 +40,9 @@ src-tauri/test_yt/
 # Large binary sidecars (download at build time)
 src-tauri/yt-dlp.exe
 src-tauri/ffmpeg*.exe
+src-tauri/yt-dlp
+src-tauri/ffmpeg
+src-tauri/yt-dlp_macos
+src-tauri/ffmpeg_macos
+src-tauri/yt-dlp_linux
+src-tauri/ffmpeg_linux

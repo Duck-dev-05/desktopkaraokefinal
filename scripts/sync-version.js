@@ -1,9 +1,11 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
+import { platform } from 'os';
 
 try {
   // Get latest git tag (prioritize GitHub Actions env var if it exists)
-  const tag = process.env.GITHUB_REF_NAME || execSync('git describe --tags --abbrev=0').toString().trim();
+  // Use cross-platform git command
+  const tag = process.env.GITHUB_REF_NAME || execSync('git describe --tags --abbrev=0', { stdio: 'pipe' }).toString().trim();
   let version = tag.replace(/^v/, ''); // Remove the 'v' prefix
 
   // Ensure strict semantic versioning (Major.Minor.Patch) for Rust/Cargo compatibility
@@ -12,6 +14,7 @@ try {
   else if (parts.length === 2) version = `${version}.0`;
 
   console.log(`Syncing local configuration files to version: ${version}`);
+  console.log(`Platform: ${platform()}`);
 
   // 1. Update package.json
   const pkgPath = 'package.json';
@@ -39,4 +42,5 @@ try {
 
 } catch (error) {
   console.log('No Git tags found or an error occurred. Skipping version sync.');
+  console.error('Error details:', error.message);
 }

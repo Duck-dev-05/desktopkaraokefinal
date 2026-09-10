@@ -1,4 +1,5 @@
 mod signaling;
+mod binaries;
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Mutex;
@@ -39,7 +40,8 @@ async fn download_and_install_update(app: tauri::AppHandle, url: String) -> Resu
     
     let temp_dir = std::env::temp_dir();
     let file_id = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
-    let installer_path = temp_dir.join(format!("KaraokePro_Update_{}.exe", file_id));
+    let ext = std::env::consts::EXE_SUFFIX;
+    let installer_path = temp_dir.join(format!("KaraokePro_Update_{}{}", file_id, ext));
     let mut file = std::fs::File::create(&installer_path).map_err(|e| e.to_string())?;
     
     let mut downloaded = 0;
@@ -72,6 +74,26 @@ async fn download_and_install_update(app: tauri::AppHandle, url: String) -> Resu
             .map_err(|e| format!("Failed to start installer: {}", e))?;
     }
     
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&installer_path)
+            .spawn()
+            .map_err(|e| format!("Failed to start installer: {}", e))?;
+    }
+    
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("chmod")
+            .arg("+x")
+            .arg(&installer_path)
+            .status()
+            .map_err(|e| format!("Failed to make installer executable: {}", e))?;
+        std::process::Command::new(&installer_path)
+            .spawn()
+            .map_err(|e| format!("Failed to start installer: {}", e))?;
+    }
+    
     app.exit(0);
     Ok(())
 }
@@ -82,17 +104,24 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
+fn check_binaries() -> Result<(bool, bool, String), String> {
+    let (ffmpeg_avail, yt_dlp_avail) = binaries::check_binary_availability();
+    let instructions = binaries::install_instructions().to_string();
+    Ok((ffmpeg_avail, yt_dlp_avail, instructions))
+}
+
+#[tauri::command]
 async fn download_video(app_handle: tauri::AppHandle, video_id: String) -> Result<String, String> {
-    let app_dir = app_handle
-        .path()
-        .app_data_dir()
-        .map_err(|e| e.to_string())?;
-    let ytdlp_path = app_dir.join("yt-dlp.exe");
-    if !ytdlp_path.exists() {
-        return Err(
-            "yt-dlp.exe not found. Please wait for initialization or restart the app.".into(),
-        );
-    }
+    // Use the binary helper to find yt-dlp
+    let ytdlp_path = binaries::get_yt_dlp_path()
+        .ok_or_else(|| {
+            let (ffmpeg_avail, yt_dlp_avail) = binaries::check_binary_availability();
+            let instructions = binaries::install_instructions();
+            format!(
+                "yt-dlp not found. {}\nffmpeg available: {}, yt-dlp available: {}",
+                instructions, ffmpeg_avail, yt_dlp_avail
+            )
+        })?;
 
     let app_dir = app_handle
         .path()
@@ -200,9 +229,10 @@ fn start_proxy_server(app_handle: tauri::AppHandle) {
         if !app_dir.exists() {
             std::fs::create_dir_all(&app_dir).unwrap();
         }
-        let ytdlp_path = app_dir.join("yt-dlp.exe");
+        let ytdlp_name = format!("yt-dlp{}", std::env::consts::EXE_SUFFIX);
+        let ytdlp_path = app_dir.join(&ytdlp_name);
         if !ytdlp_path.exists() {
-            println!("Downloading yt-dlp.exe to handle video streams...");
+            println!("Downloading {} to handle video streams...", ytdlp_name);
             let _ = rt.block_on(youtube_dl::download_yt_dlp(app_dir.to_str().unwrap()));
         }
 
@@ -695,6 +725,7 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             greet,
+            check_binaries,
             download_video,
             import_local_file,
             save_audio_recording,

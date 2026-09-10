@@ -114,10 +114,14 @@ export function useCheckForUpdates() {
           };
 
           if (cmp(tagVersion, currentVersion) > 0) {
-            const winAsset = data.assets.find((a: any) => a.name.endsWith('.exe'));
-            const dlUrl = winAsset ? winAsset.browser_download_url : data.html_url;
+            const isMac = navigator.userAgent.toLowerCase().includes('mac');
+            const isLinux = navigator.userAgent.toLowerCase().includes('linux');
+            const ext = isMac ? '.dmg' : isLinux ? '.AppImage' : '.exe';
+            
+            const asset = data.assets.find((a: any) => a.name.endsWith(ext));
+            const dlUrl = asset ? asset.browser_download_url : data.html_url;
 
-            if (winAsset) {
+            if (asset) {
               setState({ status: "github-ready", version: tagVersion, url: dlUrl, body: data.body });
             } else {
               setState({ status: "github-available", version: tagVersion, url: dlUrl });
