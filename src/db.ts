@@ -88,6 +88,28 @@ export interface AudioRecording {
   video_id?: string;
 }
 
+export interface Favorite {
+  id: number;
+  user_id: number;
+  song_id: number;
+  added_at: string;
+  title: string;
+  artist: string;
+  cover_url: string;
+  duration: string;
+  file_path: string;
+}
+
+export interface Achievement {
+  id: number;
+  user_id: number;
+  achievement_type: string;
+  achievement_name: string;
+  achievement_description: string;
+  icon_url: string;
+  earned_at: string;
+}
+
 let dbInstancePromise: Promise<Database> | null = null;
 
 export const resetDatabase = async () => {
@@ -210,6 +232,32 @@ export const initDB = async () => {
     await dbInstance.execute("ALTER TABLE downloads ADD COLUMN thumbnail TEXT DEFAULT ''");
     await dbInstance.execute("ALTER TABLE downloads ADD COLUMN channel_title TEXT DEFAULT ''");
   } catch (e) {}
+
+  await dbInstance.execute(`
+    CREATE TABLE IF NOT EXISTS favorites (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      song_id INTEGER NOT NULL,
+      added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id) REFERENCES users(id),
+      FOREIGN KEY(song_id) REFERENCES songs(id),
+      UNIQUE(user_id, song_id)
+    )
+  `);
+
+  await dbInstance.execute(`
+    CREATE TABLE IF NOT EXISTS achievements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      achievement_type TEXT NOT NULL,
+      achievement_name TEXT NOT NULL,
+      achievement_description TEXT NOT NULL,
+      icon_url TEXT NOT NULL,
+      earned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id) REFERENCES users(id),
+      UNIQUE(user_id, achievement_type)
+    )
+  `);
 
     return dbInstance;
   })();
@@ -373,4 +421,71 @@ export const saveRecording = async (userId: number, videoId: string, title: stri
     'INSERT INTO recordings (user_id, song_id, score) VALUES ($1, $2, $3)',
     [userId, songId, score]
   );
+};
+
+export const getFavorites = async (userId: number): Promise<Favorite[]> => {
+  const db = await initDB();
+  return await db.select(`
+    SELECT f.id, f.user_id, f.song_id, f.added_at, s.title, s.artist, s.cover_url, s.duration, s.file_path
+    FROM favorites f
+    JOIN songs s ON f.song_id = s.id
+    WHERE f.user_id = $1
+    ORDER BY f.added_at DESC
+  `, [userId]);
+};
+
+export const toggleFavorite = async (userId: number, songId: number): Promise<boolean> => {
+  const db = await initDB();
+  const existing: any[] = await db.select('SELECT id FROM favorites WHERE user_id = $1 AND song_id = $2', [userId, songId]);
+  
+  if (existing.length > 0) {
+    await db.execute('DELETE FROM favorites WHERE user_id = $1 AND song_id = $2', [userId, songId]);
+    return false; // Removed
+  } else {
+    await db.execute('INSERT INTO favorites (user_id, song_id) VALUES ($1, $2)', [userId, songId]);
+    return true; // Added
+  }
+};
+
+export const isFavorite = async (userId: number, songId: number): Promise<boolean> => {
+  const db = await initDB();
+  const existing: any[] = await db.select('SELECT id FROM favorites WHERE user_id = $1 AND song_id = $2', [userId, songId]);
+  return existing.length > 0;
+};
+
+export const getAchievements = async (userId: number): Promise<Achievement[]> => {
+  const db = await initDB();
+  return await db.select('SELECT * FROM achievements WHERE user_id = $1 ORDER BY earned_at DESC', [userId]);
+};
+
+export const checkAndAwardAchievements = async (userId: number, recordingsCount: number): Promise<void> => {
+  const db = await initDB();
+  const award = async (type: string, name: string, desc: string, icon: string) => {
+    try {
+      await db.execute(
+        'INSERT INTO achievements (user_id, achievement_type, achievement_name, achievement_description, icon_url) VALUES ($1, $2, $3, $4, $5)',
+        [userId, type, name, desc, icon]
+      );
+    } catch (e) {
+      // Ignore unique constraint violations
+    }
+  };
+
+  if (recordingsCount >= 1) {
+    await award('first_song', 'Bước Chân Đầu Tiên', 'Hoàn thành bản thu đầu tiên của bạn', '🎤');
+  }
+  if (recordingsCount >= 5) {
+    await award('five_songs', 'Người Hát Mới', 'Hoàn thành 5 bản thu', '🌟');
+  }
+  if (recordingsCount >= 10) {
+    await award('ten_songs', 'Đam Mê Bùng Cháy', 'Hoàn thành 10 bản thu', '🔥');
+  }
+  if (recordingsCount >= 50) {
+    await award('fifty_songs', 'Ca Sĩ Chuyên Nghiệp', 'Hoàn thành 50 bản thu', '👑');
+  }
+};
+
+export const updateUserProfile = async (id: number, username: string, bio: string, avatar_url: string): Promise<void> => {
+  const db = await initDB();
+  await db.execute('UPDATE users SET username = $1, bio = $2, avatar_url = $3 WHERE id = $4', [username, bio, avatar_url, id]);
 };

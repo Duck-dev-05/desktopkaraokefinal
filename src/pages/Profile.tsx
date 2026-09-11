@@ -1,20 +1,35 @@
 import { useEffect, useState } from "react";
 import { Mic2, Star, Users, Award, Play } from "lucide-react";
-import { getRecordingsForUser } from "../db";
+import { getRecordingsForUser, getFavorites, getAchievements, checkAndAwardAchievements, Favorite, Achievement } from "../db";
 import { useAuth } from "../context/AuthContext";
+import ProfileEditModal from "../components/ProfileEditModal";
 import "./Profile.css";
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [recordings, setRecordings] = useState<any[]>([]);
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [activeTab, setActiveTab] = useState<'recordings' | 'favorites' | 'achievements'>('recordings');
-  const [badges, setBadges] = useState<any[]>([]);
+  const [badges, setBadges] = useState<Achievement[]>([]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
-      getRecordingsForUser(user.id).then(data => setRecordings(data as any[])).catch(console.error);
+      getRecordingsForUser(user.id).then(async (data) => {
+        setRecordings(data as any[]);
+        await checkAndAwardAchievements(user.id, data.length);
+        const achievementsData = await getAchievements(user.id);
+        setBadges(achievementsData);
+      }).catch(console.error);
+
+      getFavorites(user.id).then(setFavorites).catch(console.error);
     }
   }, [user]);
+
+  const handleShareProfile = () => {
+    navigator.clipboard.writeText(window.location.href);
+    alert('Đã sao chép liên kết hồ sơ vào clipboard!');
+  };
 
   if (!user) return null; // Wait for load
 
@@ -73,8 +88,8 @@ const Profile = () => {
       </div>
 
       <div className="profile-actions">
-        <button className="btn btn-primary">Sửa Hồ Sơ</button>
-        <button className="btn icon-btn-outline" title="Chia Sẻ Hồ Sơ">
+        <button className="btn btn-primary" onClick={() => setIsEditModalOpen(true)}>Sửa Hồ Sơ</button>
+        <button className="btn icon-btn-outline" title="Chia Sẻ Hồ Sơ" onClick={handleShareProfile}>
           <Users size={20} />
         </button>
       </div>
@@ -130,7 +145,26 @@ const Profile = () => {
 
           {activeTab === 'favorites' && (
             <div className="recordings-list animate-fade-in">
-              <div className="empty-state">Chưa có bài hát yêu thích nào. Hãy bắt đầu khám phá!</div>
+              {favorites.length === 0 ? (
+                <div className="empty-state">Chưa có bài hát yêu thích nào. Hãy bắt đầu khám phá!</div>
+              ) : (
+                favorites.map((fav, idx) => (
+                  <div className="recording-item" key={idx}>
+                    <div className="recording-icon" style={{ backgroundImage: `url(${fav.cover_url})`, backgroundSize: 'cover', backgroundPosition: 'center', borderRadius: '4px' }}>
+                    </div>
+                    <div className="recording-details">
+                      <h3>{fav.title}</h3>
+                      <p>{fav.artist}</p>
+                    </div>
+                    <div className="recording-date">
+                      {new Date(fav.added_at).toLocaleDateString()}
+                    </div>
+                    <button className="btn icon-btn-outline" title="Phát">
+                      <Play size={16} />
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           )}
 
@@ -140,11 +174,12 @@ const Profile = () => {
                 <div className="empty-state" style={{ gridColumn: '1 / -1' }}>Chưa đạt được thành tựu nào. Hãy tiếp tục hát!</div>
               ) : (
                 badges.map((badge, idx) => (
-                  <div className={`achievement-card ${badge.earned ? 'earned' : ''}`} key={idx}>
-                    <div className="achievement-icon">{badge.icon}</div>
+                  <div className="achievement-card earned" key={idx}>
+                    <div className="achievement-icon" style={{ fontSize: '2rem' }}>{badge.icon_url}</div>
                     <div className="achievement-details">
-                      <h4>{badge.title}</h4>
-                      <p>{badge.desc}</p>
+                      <h4>{badge.achievement_name}</h4>
+                      <p>{badge.achievement_description}</p>
+                      <small style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>Đạt được: {new Date(badge.earned_at).toLocaleDateString()}</small>
                     </div>
                   </div>
                 ))
@@ -153,6 +188,17 @@ const Profile = () => {
           )}
         </div>
       </div>
+      
+      {isEditModalOpen && (
+        <ProfileEditModal
+          user={user}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={() => {
+            setIsEditModalOpen(false);
+            if (refreshUser) refreshUser();
+          }}
+        />
+      )}
     </div>
   );
 };
