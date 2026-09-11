@@ -1,6 +1,6 @@
 [package]
 name = "karaokedesktop"
-version = "2.3.0"
+version = "2.4.0"
 description = "Karaoke Pro – A feature-rich desktop karaoke application with YouTube streaming, Party mode, and more."
 authors = ["Duck-dev-05"]
 edition = "2021"

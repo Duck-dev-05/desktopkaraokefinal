@@ -36,7 +36,66 @@ const MainLayout = () => {
     }
   }, [hasMultipleMonitors]);
 
+  // Auto-open TV display when second monitor or amplifier is detected
+  useEffect(() => {
+    const checkAndSpawn = async () => {
+      if (hasMultipleMonitors && window.__TAURI_INTERNALS__) {
+        try {
+          const monitors = await availableMonitors();
+          const primary = await primaryMonitor();
+          
+          let x: number | undefined;
+          let y: number | undefined;
+          
+          // Find a monitor that isn't the primary one
+          const secondMonitor = monitors.find(m => m.name !== primary?.name);
+          if (secondMonitor) {
+            const logicalPos = secondMonitor.position.toLogical(secondMonitor.scaleFactor);
+            x = logicalPos.x;
+            y = logicalPos.y;
+          }
 
+          let webview = await WebviewWindow.getByLabel('karaoke-player');
+          
+          if (webview) {
+            // Window already exists, just move and maximize it
+            if (x !== undefined && y !== undefined) {
+              await webview.setPosition(new LogicalPosition(x, y));
+            }
+            await webview.show();
+            await webview.maximize();
+          } else {
+            // Create new window
+            const windowOptions: any = {
+              url: '/',
+              title: 'Karaoke TV Display',
+              width: 1280,
+              height: 720,
+              decorations: true,
+              maximized: true // Start maximized for better experience
+            };
+            
+            if (x !== undefined && y !== undefined) {
+              windowOptions.x = x;
+              windowOptions.y = y;
+            } else {
+              windowOptions.center = true;
+            }
+
+            webview = new WebviewWindow('karaoke-player', windowOptions);
+            
+            webview.once('tauri://error', function (e) {
+              console.error('Error creating player window:', e);
+            });
+          }
+        } catch (e) {
+          console.error("Failed to auto-open TV Display", e);
+        }
+      }
+    };
+    
+    checkAndSpawn();
+  }, [hasMultipleMonitors]);
 
   return (
     <div className={`app-container ${isTheaterMode ? "theater-mode" : ""}`}>
