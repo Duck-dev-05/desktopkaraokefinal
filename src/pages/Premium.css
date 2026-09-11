@@ -6,10 +6,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 60px 20px;
+  padding: var(--space-12) var(--space-5);
   min-height: 100%;
-  background: radial-gradient(circle at top center, rgba(30, 20, 50, 0.8) 0%, rgba(10, 10, 15, 1) 100%);
-  color: #fff;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   position: relative;
   overflow: hidden;
   animation: fadeIn var(--transition-slow) ease-out both;
@@ -23,7 +23,7 @@
   transform: translateX(-50%);
   width: 700px;
   height: 700px;
-  background: radial-gradient(circle, rgba(240, 147, 251, 0.14) 0%, rgba(245, 87, 108, 0.06) 40%, transparent 70%);
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.04) 40%, transparent 70%);
   border-radius: 50%;
   z-index: 0;
   pointer-events: none;
@@ -34,24 +34,25 @@
 /* ─── Header ────────────────────────────────── */
 .premium-header {
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: var(--space-12);
   position: relative;
   z-index: 1;
 }
 
 .premium-title {
   font-size: 3.5rem;
-  font-weight: 900;
-  margin-bottom: 15px;
-  background: linear-gradient(135deg, #ffffff 0%, #d8b4fe 60%, #f06cbb 100%);
+  font-weight: 700;
+  margin-bottom: var(--space-4);
+  background: var(--gradient-cosmic);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
+  font-family: var(--font-display);
 }
 
 .premium-accent {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -59,7 +60,7 @@
 
 .premium-subtitle {
   font-size: 1.05rem;
-  color: rgba(196, 181, 253, 0.7);
+  color: var(--text-secondary);
   max-width: 520px;
   margin: 0 auto;
   font-weight: 400;
@@ -84,17 +85,17 @@
   flex: 1;
   min-width: 240px;
   max-width: 300px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
   border-radius: var(--radius-2xl);
-  padding: 36px 28px;
+  padding: var(--space-9) var(--space-7);
   display: flex;
   flex-direction: column;
   position: relative;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
 
@@ -106,37 +107,37 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.15), transparent);
   pointer-events: none;
 }
 
 /* Free plan */
 .premium-card:nth-child(1) {
-  border-color: rgba(156, 163, 175, 0.15);
+  border-color: var(--border-default);
 }
 .premium-card:nth-child(1):hover {
-  border-color: rgba(156, 163, 175, 0.4);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(156, 163, 175, 0.08);
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-xl);
 }
 
 /* Premium plan — purple */
 .premium-card:nth-child(2) {
-  border-color: rgba(157, 78, 221, 0.2);
+  border-color: rgba(139, 92, 246, 0.2);
 }
 .premium-card:nth-child(2):hover {
-  border-color: rgba(157, 78, 221, 0.55);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(157, 78, 221, 0.15);
-  background: rgba(157, 78, 221, 0.04);
+  border-color: var(--secondary);
+  box-shadow: var(--shadow-xl), 0 0 20px rgba(139, 92, 246, 0.15);
+  background: var(--secondary-light);
 }
 
 /* VIP plan — cyan */
 .premium-card:nth-child(3) {
-  border-color: rgba(79, 172, 254, 0.2);
+  border-color: rgba(20, 184, 166, 0.2);
 }
 .premium-card:nth-child(3):hover {
-  border-color: rgba(79, 172, 254, 0.55);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(79, 172, 254, 0.15);
-  background: rgba(79, 172, 254, 0.04);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-xl), 0 0 20px rgba(20, 184, 166, 0.15);
+  background: var(--accent-light);
 }
 
 .premium-card:hover {
@@ -146,22 +147,22 @@
 /* ─── Elite Card ────────────────────────────── */
 .elite-card {
   transform: scale(1.04);
-  background: rgba(245, 87, 108, 0.04);
-  border: 1px solid rgba(245, 87, 108, 0.32);
-  box-shadow: 0 16px 50px rgba(245, 87, 108, 0.18), 0 0 60px rgba(245, 87, 108, 0.06);
+  background: var(--gold-light);
+  border: 1px solid var(--gold);
+  box-shadow: var(--shadow-xl), 0 0 60px rgba(245, 158, 11, 0.06);
   z-index: 2;
 }
 
 .elite-card::before {
-  background: linear-gradient(90deg, transparent, rgba(245, 87, 108, 0.35), rgba(240, 147, 251, 0.25), transparent);
+  background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.35), rgba(251, 191, 36, 0.25), transparent);
   animation: shimmer-border 3s ease-in-out infinite;
   background-size: 200% 100%;
 }
 
 .elite-card:hover {
   transform: scale(1.04) translateY(-14px);
-  border-color: rgba(245, 87, 108, 0.65);
-  box-shadow: 0 30px 60px rgba(245, 87, 108, 0.35), 0 0 80px rgba(245, 87, 108, 0.2);
+  border-color: var(--gold-bright);
+  box-shadow: 0 30px 60px rgba(245, 158, 11, 0.35), 0 0 80px rgba(245, 158, 11, 0.2);
 }
 
 /* ─── Elite Badge Top ───────────────────────── */
@@ -170,15 +171,15 @@
   top: -14px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(90deg, #f093fb, #f5576c);
-  color: #fff;
+  background: var(--gradient-gold);
+  color: white;
   font-size: 0.7rem;
   font-weight: 800;
-  padding: 6px 18px;
+  padding: var(--space-2) var(--space-5);
   border-radius: var(--radius-full);
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  box-shadow: 0 4px 20px rgba(245, 87, 108, 0.5);
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5);
   white-space: nowrap;
   background-size: 200% 100%;
   animation: badge-shimmer 2s linear infinite;
@@ -193,10 +194,10 @@
 .card-icon-wrapper {
   width: 64px;
   height: 64px;
-  margin: 0 auto 18px;
+  margin: 0 auto var(--space-5);
   border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -211,17 +212,18 @@
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
 }
 
-.free-icon   { color: #9ca3af; }
-.ticket-icon { color: #4facfe; }
-.elite-icon  { color: #f5576c; filter: drop-shadow(0 0 12px rgba(245, 87, 108, 0.7)); }
-.vip-icon    { color: #f093fb; filter: drop-shadow(0 0 10px rgba(240, 147, 251, 0.6)); }
+.free-icon   { color: var(--text-muted); }
+.ticket-icon { color: var(--accent); }
+.elite-icon  { color: var(--gold); filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.7)); }
+.vip-icon    { color: var(--secondary); filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.6)); }
 
 .card-plan-name {
   font-size: 1.4rem;
-  font-weight: 800;
-  color: #ffffff;
+  font-weight: 700;
+  color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
+  font-family: var(--font-display);
 }
 
 /* ─── Card Pricing ──────────────────────────── */
@@ -229,30 +231,31 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  margin-bottom: 28px;
-  gap: 2px;
+  margin-bottom: var(--space-7);
+  gap: var(--space-1);
 }
 
 .card-currency {
   font-size: 1.3rem;
   font-weight: 600;
-  color: rgba(196, 181, 253, 0.7);
-  margin-top: 8px;
+  color: var(--text-secondary);
+  margin-top: var(--space-2);
 }
 
 .card-price-amount {
   font-size: 3.2rem;
-  font-weight: 900;
-  color: #ffffff;
+  font-weight: 700;
+  color: var(--text-primary);
   line-height: 1;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
+  font-family: var(--font-display);
 }
 
 .card-price-interval {
   font-size: 1rem;
-  color: rgba(156, 163, 175, 0.8);
+  color: var(--text-muted);
   align-self: flex-end;
-  margin-bottom: 6px;
+  margin-bottom: var(--space-2);
 }
 
 /* ─── Features List ─────────────────────────── */
@@ -269,18 +272,18 @@
   align-items: center;
   gap: var(--space-3);
   font-size: 0.9rem;
-  color: rgba(224, 224, 240, 0.9);
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .check-icon {
-  color: #4facfe;
+  color: var(--accent);
   flex-shrink: 0;
 }
 
 .elite-check {
-  color: #f5576c;
-  filter: drop-shadow(0 0 5px rgba(245, 87, 108, 0.5));
+  color: var(--gold);
+  filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.5));
 }
 
 /* ─── Subscribe Button ──────────────────────── */
@@ -290,24 +293,24 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
-  background: rgba(255, 255, 255, 0.07);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
   padding: var(--space-4);
   border-radius: var(--radius-lg);
   font-size: 0.95rem;
-  font-weight: 700;
-  font-family: var(--font-sans);
+  font-weight: 600;
+  font-family: var(--font-body);
   cursor: pointer;
   transition: all var(--transition-base);
   letter-spacing: 0.01em;
 }
 
 .btn-subscribe-card:hover {
-  background: rgba(255, 255, 255, 0.13);
-  border-color: rgba(255, 255, 255, 0.35);
+  background: var(--bg-card-hover);
+  border-color: var(--border-focus);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-subscribe-card:active { transform: scale(0.98); }
@@ -318,36 +321,36 @@
 
 .btn-subscribe-card:hover .btn-zap-icon {
   transform: scale(1.25) rotate(15deg);
-  color: #fbbf24;
+  color: var(--gold);
 }
 
 /* Elite button */
 .btn-elite {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: var(--gradient-gold);
   border: none;
-  box-shadow: 0 6px 24px rgba(245, 87, 108, 0.45);
+  box-shadow: 0 6px 24px rgba(245, 158, 11, 0.45);
 }
 
 .btn-elite:hover {
-  background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
-  box-shadow: 0 12px 36px rgba(245, 87, 108, 0.65);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 12px 36px rgba(245, 158, 11, 0.65);
   border-color: transparent;
 }
 
 /* Active plan state */
 .btn-active-plan {
-  background: rgba(79, 172, 254, 0.12) !important;
-  color: #4facfe !important;
-  border-color: rgba(79, 172, 254, 0.38) !important;
+  background: var(--accent-light) !important;
+  color: var(--accent) !important;
+  border-color: var(--accent) !important;
   cursor: default !important;
   box-shadow: none !important;
   transform: none !important;
 }
 
 .elite-card .btn-active-plan {
-  background: rgba(245, 87, 108, 0.12) !important;
-  color: #f5576c !important;
-  border-color: rgba(245, 87, 108, 0.38) !important;
+  background: var(--gold-light) !important;
+  color: var(--gold) !important;
+  border-color: var(--gold) !important;
 }
 
 /* ─── Active Subscription Banner ──────────── */

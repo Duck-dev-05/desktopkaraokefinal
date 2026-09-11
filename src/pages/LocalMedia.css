@@ -3,66 +3,69 @@
 }
 
 .local-media-header {
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-8);
 }
 .local-media-header h1 {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
   font-size: 2rem;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 var(--space-2) 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text-primary);
 }
 .local-media-header p {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin: 0;
 }
 
 .local-media-content {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--space-8);
   align-items: center;
 }
 
 .local-upload-card {
   background: var(--bg-card);
-  border: 2px dashed rgba(255,255,255,0.15);
+  border: 2px dashed var(--border-default);
   border-radius: var(--radius-xl);
-  padding: 4rem 2rem;
+  padding: var(--space-16) var(--space-5);
   text-align: center;
   width: 100%;
   max-width: 600px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all var(--transition-base);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 .local-upload-card:hover {
-  border-color: #9d4edd;
-  background: rgba(168,85,247,0.05);
+  border-color: var(--primary);
+  background: var(--primary-light);
 }
 
 .local-upload-icon {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.05);
+  background: var(--bg-surface);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9d4edd;
+  color: var(--primary);
 }
 
 .local-player-wrapper {
   width: 100%;
   max-width: 800px;
-  background: #000;
+  background: var(--bg-surface);
   border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-default);
 }
 .local-player-wrapper video {
   width: 100%;
@@ -71,7 +74,7 @@
 .local-player-wrapper audio {
   width: 100%;
   display: block;
-  padding: 1rem;
+  padding: var(--space-4);
 }
 
 .local-now-playing {
@@ -81,11 +84,13 @@
   align-items: center;
   justify-content: space-between;
   background: var(--bg-card);
-  padding: 1rem 1.5rem;
+  padding: var(--space-4) var(--space-6);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-default);
 }
 .local-now-playing h3 {
   margin: 0;
   font-size: 1.1rem;
+  color: var(--text-primary);
+  font-weight: 600;
 }
