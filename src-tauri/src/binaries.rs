@@ -1,7 +1,6 @@
 // Binary helper module for handling external binaries across platforms
 use std::path::PathBuf;
 use std::env;
-use std::process::Command;
 
 pub fn get_ffmpeg_path() -> Option<PathBuf> {
     find_binary("ffmpeg")

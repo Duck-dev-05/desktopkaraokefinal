@@ -1,4 +1,7 @@
-import { Mic, Volume2, Monitor, RefreshCw, CheckCircle2, AlertCircle, Download, Loader2, Play } from "lucide-react";
+import { Mic, Volume2, Monitor, RefreshCw, CheckCircle2, AlertCircle, Download, Loader2, Play, SunMoon, Shield, Database, Upload } from "lucide-react";
+import { save, open } from '@tauri-apps/plugin-dialog';
+import { copyFile } from '@tauri-apps/plugin-fs';
+import { appDataDir, join } from '@tauri-apps/api/path';
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { usePlayer } from "../context/PlayerContext";
 import { useUpdaterContext } from "../components/Updater";
@@ -10,9 +13,11 @@ import "./Settings.css";
 
 // ── Nav section definitions ──────────────────────────────────
 const NAV_SECTIONS = [
+  { id: "appearance",   label: "Giao diện & Ngôn ngữ", icon: SunMoon },
   { id: "audio-input",  label: "Đầu Vào Âm Thanh", icon: Mic },
   { id: "audio-output", label: "Đầu Ra Âm Thanh",  icon: Volume2 },
   { id: "video",        label: "Video & Hiển Thị",  icon: Monitor },
+  { id: "privacy",      label: "Dữ liệu & Quyền riêng tư", icon: Shield },
   { id: "updates",      label: "Cập Nhật",           icon: RefreshCw },
 ] as const;
 
@@ -142,6 +147,47 @@ const Settings = () => {
     }
   };
 
+  const handleExportData = async () => {
+    try {
+      const savePath = await save({
+        filters: [{ name: 'SQLite Database', extensions: ['db'] }],
+        defaultPath: 'karaoke_backup.db'
+      });
+      
+      if (savePath) {
+        const appDataPath = await appDataDir();
+        const dbPath = await join(appDataPath, 'karaoke.db');
+        await copyFile(dbPath, savePath);
+        alert('Xuất dữ liệu thành công!');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Lỗi khi xuất dữ liệu: ' + e);
+    }
+  };
+
+  const handleImportData = async () => {
+    try {
+      const selected = await open({
+        filters: [{ name: 'SQLite Database', extensions: ['db'] }],
+        multiple: false
+      });
+      
+      if (selected && typeof selected === 'string') {
+        const confirmResult = window.confirm("Cảnh báo: Việc nhập dữ liệu sẽ ghi đè toàn bộ dữ liệu hiện tại. Bạn có chắc chắn muốn tiếp tục?");
+        if (confirmResult) {
+          const appDataPath = await appDataDir();
+          const dbPath = await join(appDataPath, 'karaoke.db');
+          await copyFile(selected, dbPath);
+          alert('Nhập dữ liệu thành công! Vui lòng khởi động lại ứng dụng để áp dụng.');
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Lỗi khi nhập dữ liệu: ' + e);
+    }
+  };
+
   // Scroll-spy: update active nav item when scrolling
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -198,6 +244,54 @@ const Settings = () => {
 
       {/* ── Settings Sections ── */}
       <div className="settings-container">
+
+        {/* ── Appearance & Language ───────────────────────── */}
+        <section
+          id="appearance"
+          ref={(el) => { sectionRefs.current["appearance"] = el; }}
+          className="settings-section glass"
+        >
+          <div className="section-title">
+            <div className="section-title-icon"><SunMoon size={20} /></div>
+            <h2>Giao diện &amp; Ngôn ngữ</h2>
+          </div>
+
+          <div className="settings-content">
+            <div className="setting-row">
+              <div className="setting-row-info">
+                <span className="setting-row-label">Giao diện</span>
+                <span className="setting-row-desc">Chọn màu nền tối hoặc sáng.</span>
+              </div>
+              <div style={{ width: "280px", flexShrink: 0 }}>
+                <CustomSelect
+                  options={[
+                    { value: "light", label: "Giao diện Sáng" },
+                    { value: "dark",  label: "Giao diện Tối" },
+                  ]}
+                  value={settings.theme || "light"}
+                  onChange={(val) => updateSettings({ theme: val })}
+                />
+              </div>
+            </div>
+
+            <div className="setting-row">
+              <div className="setting-row-info">
+                <span className="setting-row-label">Ngôn ngữ</span>
+                <span className="setting-row-desc">Ngôn ngữ hiển thị của ứng dụng.</span>
+              </div>
+              <div style={{ width: "280px", flexShrink: 0 }}>
+                <CustomSelect
+                  options={[
+                    { value: "vi", label: "Tiếng Việt" },
+                    { value: "en", label: "English" },
+                  ]}
+                  value={settings.language || "vi"}
+                  onChange={(val) => updateSettings({ language: val })}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* ── Audio Input ──────────────────────────── */}
         <section
@@ -454,6 +548,59 @@ const Settings = () => {
                   value={settings.lyricsSync}
                   onChange={(val) => updateSettings({ lyricsSync: val })}
                 />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Privacy & Data ──────────────────────────── */}
+        <section
+          id="privacy"
+          ref={(el) => { sectionRefs.current["privacy"] = el; }}
+          className="settings-section glass"
+        >
+          <div className="section-title">
+            <div className="section-title-icon"><Shield size={20} /></div>
+            <h2>Dữ liệu &amp; Quyền riêng tư</h2>
+          </div>
+
+          <div className="settings-content">
+            <div className="setting-row">
+              <div className="setting-row-info">
+                <span className="setting-row-label">Bảo mật thông tin</span>
+                <span className="setting-row-desc">Không gửi dữ liệu thu thập ẩn danh về máy chủ.</span>
+              </div>
+              <label className="toggle-switch">
+                <input
+                  type="checkbox"
+                  checked={settings.privacyMode}
+                  onChange={(e) => updateSettings({ privacyMode: e.target.checked })}
+                />
+                <span className="slider round"></span>
+              </label>
+            </div>
+
+            <div className="setting-row">
+              <div className="setting-row-info">
+                <span className="setting-row-label">Sao lưu Dữ liệu</span>
+                <span className="setting-row-desc">Xuất cơ sở dữ liệu để lưu trữ lịch sử và bài hát.</span>
+              </div>
+              <div style={{ width: "280px", flexShrink: 0, display: "flex", justifyContent: "flex-end", paddingRight: "16px" }}>
+                <button className="update-btn update-btn--idle" onClick={handleExportData}>
+                  <Download size={15} /> Xuất file (.db)
+                </button>
+              </div>
+            </div>
+
+            <div className="setting-row">
+              <div className="setting-row-info">
+                <span className="setting-row-label">Phục hồi Dữ liệu</span>
+                <span className="setting-row-desc">Tải tệp cơ sở dữ liệu có sẵn. Ghi đè dữ liệu cũ.</span>
+              </div>
+              <div style={{ width: "280px", flexShrink: 0, display: "flex", justifyContent: "flex-end", paddingRight: "16px" }}>
+                <button className="update-btn update-btn--idle" onClick={handleImportData}>
+                  <Upload size={15} /> Nhập file (.db)
+                </button>
               </div>
             </div>
           </div>

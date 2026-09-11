@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParty } from '../context/PartyContext';
-import { Users, LogIn, Link as LinkIcon, Mic, MicOff, PhoneOff, Copy, Search, ExternalLink, Video, VideoOff, Keyboard, Send, Music, Mic2 } from 'lucide-react';
+import { Users, LogIn, Link as LinkIcon, Mic, MicOff, PhoneOff, Copy, Search, ExternalLink, Video, VideoOff, Keyboard, Send, Music, Mic2, Lock, UserMinus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import QRCode from 'react-qr-code';
@@ -8,7 +8,7 @@ import DuetManager from '../components/DuetManager';
 import './Party.css';
 
 const Party: React.FC = () => {
-  const { createRoom, joinRoom, roomId, leaveRoom, peerId, peers, isHost, localStream, remoteStreams, isMicOn, isVideoOn, initLocalStream, toggleMic, toggleVideo, chatMessages, sendChatMessage, partyQueue } = useParty();
+  const { createRoom, joinRoom, roomId, leaveRoom, peerId, peers, isHost, localStream, remoteStreams, isMicOn, isVideoOn, initLocalStream, toggleMic, toggleVideo, chatMessages, sendChatMessage, partyQueue, publicRooms, fetchPublicRooms, kickUser } = useParty();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [joinCode, setJoinCode] = useState('');
@@ -24,6 +24,16 @@ const Party: React.FC = () => {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
+
+  const [roomPassword, setRoomPassword] = useState('');
+
+  useEffect(() => {
+    if (step === 'LANDING' && !roomId) {
+      fetchPublicRooms();
+      const interval = setInterval(fetchPublicRooms, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [step, roomId, fetchPublicRooms]);
 
   const handleStartCreateRoom = async () => {
     if (!user || user.role === 'user' || user.role === 'free_plan') {
@@ -57,9 +67,9 @@ const Party: React.FC = () => {
       setError('');
       const username = user?.username || 'Tôi';
       if (isCreating) {
-        await createRoom(username);
+        await createRoom(username, roomPassword.trim());
       } else {
-        await joinRoom(joinCode.trim(), username);
+        await joinRoom(joinCode.trim(), username, roomPassword.trim());
       }
     } catch (err: any) {
       setError(err.message || 'Lỗi tham gia phòng');
@@ -134,10 +144,26 @@ const Party: React.FC = () => {
           </div>
           
           <div className="party-landing-right">
-            <div className="illustration-carousel">
-              <img src="/party-illustration.png" alt="Party Illustration" className="landing-illustration" />
-              <h3>Trải nghiệm âm nhạc tuyệt vời</h3>
-              <p>Cùng nhau chia sẻ niềm vui mà không bị cản trở bởi khoảng cách.</p>
+            <div className="public-rooms-lobby" style={{background: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '1.5rem', height: '100%', minHeight: '400px'}}>
+              <h3 style={{display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: '#fff'}}><Users size={20}/> Phòng Hát Công Khai ({publicRooms.length})</h3>
+              {publicRooms.length === 0 ? (
+                <p style={{color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginTop: '2rem'}}>Hiện không có phòng công khai nào.</p>
+              ) : (
+                <div style={{display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto', maxHeight: '350px'}}>
+                   {publicRooms.map(room => (
+                      <div key={room.id} style={{background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                         <div>
+                            <div style={{fontWeight: 'bold', fontSize: '1.1rem', color: '#fff'}}>{room.host_name}'s Room</div>
+                            <div style={{fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)', display: 'flex', gap: '1rem', marginTop: '0.3rem'}}>
+                               <span><Users size={14}/> {room.participant_count} người</span>
+                               {room.has_password && <span style={{color: '#ff9800'}}><Lock size={14}/> Có mật khẩu</span>}
+                            </div>
+                         </div>
+                         <button className="btn btn-primary" onClick={() => { setJoinCode(room.id); setStep('PRE_CALL'); }}>Tham gia</button>
+                      </div>
+                   ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -165,6 +191,16 @@ const Party: React.FC = () => {
           </div>
           
           <div className="pre-call-actions">
+            <div className="password-input-group" style={{marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', justifyContent: 'center'}}>
+               <Lock size={18} color="#aaa"/>
+               <input 
+                 type="text" 
+                 placeholder={isCreating ? "Mật khẩu phòng (tuỳ chọn)" : "Mật khẩu phòng (nếu có)"} 
+                 value={roomPassword}
+                 onChange={(e) => setRoomPassword(e.target.value)}
+                 style={{padding: '0.8rem', borderRadius: '8px', border: 'none', background: 'rgba(255,255,255,0.1)', color: '#fff', outline: 'none', width: '250px'}}
+               />
+            </div>
             <button className="btn btn-primary btn-join-now" onClick={handleJoinNow} disabled={isConnecting}>
                 {isConnecting ? 'Đang kết nối...' : isCreating ? 'Bắt đầu cuộc gọi' : 'Tham gia ngay'}
             </button>
@@ -241,7 +277,14 @@ const Party: React.FC = () => {
                       />
                       <div className="participant-overlay">
                         <div className="participant-name">{displayName}</div>
-                        <div className="mic-status active"><Mic size={16}/></div>
+                        <div style={{display: 'flex', gap: '0.5rem'}}>
+                           {isHost && (
+                             <button className="btn icon-btn" onClick={() => kickUser((stream as any).peerId)} title="Mời ra khỏi phòng">
+                                <UserMinus size={16}/>
+                             </button>
+                           )}
+                           <div className="mic-status active"><Mic size={16}/></div>
+                        </div>
                       </div>
                     </div>
                   );

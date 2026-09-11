@@ -11,6 +11,10 @@ export interface AppSettings {
   lyricsSync: string;
   autoUpdate: boolean;
   micEcho: number;
+  theme: string;
+  language: string;
+  notificationsEnabled: boolean;
+  privacyMode: boolean;
 }
 
 const defaultSettings: AppSettings = {
@@ -24,6 +28,10 @@ const defaultSettings: AppSettings = {
   lyricsSync: 'smooth',
   autoUpdate: true,
   micEcho: 20,
+  theme: 'light',
+  language: 'vi',
+  notificationsEnabled: true,
+  privacyMode: false,
 };
 
 interface SettingsContextType {
@@ -48,6 +56,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     localStorage.setItem('appSettings', JSON.stringify(settings));
+    if (settings.theme === 'dark') {
+      document.body.classList.add('dark-theme');
+    } else {
+      document.body.classList.remove('dark-theme');
+    }
   }, [settings]);
 
   // Sync settings across windows/tabs

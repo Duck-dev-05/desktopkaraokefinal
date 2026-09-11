@@ -9,8 +9,15 @@ export type ChatMessage = {
 
 export type PartySong = any;
 
+export type PublicRoom = {
+  id: string;
+  host_name: string;
+  participant_count: number;
+  has_password: boolean;
+};
+
 export type SyncMessage = {
-  type: 'PLAY' | 'PAUSE' | 'SEEK' | 'CHANGE_SONG' | 'CHAT' | 'SYNC_QUEUE' | 'ADD_SONG' | 'REMOVE_SONG';
+  type: 'PLAY' | 'PAUSE' | 'SEEK' | 'CHANGE_SONG' | 'CHAT' | 'SYNC_QUEUE' | 'ADD_SONG' | 'REMOVE_SONG' | 'KICK';
   payload?: any;
 };
 
@@ -19,9 +26,12 @@ interface PartyContextType {
   roomId: string | null;
   isHost: boolean;
   peers: string[]; 
-  createRoom: (username: string) => Promise<string>;
-  joinRoom: (id: string, username: string) => Promise<void>;
+  publicRooms: PublicRoom[];
+  fetchPublicRooms: () => void;
+  createRoom: (username: string, password?: string) => Promise<string>;
+  joinRoom: (id: string, username: string, password?: string) => Promise<void>;
   leaveRoom: () => void;
+  kickUser: (peerId: string) => void;
   broadcastSync: (msg: SyncMessage) => void;
   lastSyncMessage: SyncMessage | null;
   remoteStreams: MediaStream[];
@@ -75,8 +85,10 @@ export const PartyProvider = ({ children }: { children: ReactNode }) => {
   
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [partyQueue, setPartyQueue] = useState<PartySong[]>([]);
+  const [publicRooms, setPublicRooms] = useState<PublicRoom[]>([]);
 
   const wsRef = useRef<WebSocket | null>(null);
+  const joinAuthPromiseRef = useRef<{resolve: () => void, reject: (err: any) => void} | null>(null);
   const pcsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
   const dataChannelsRef = useRef<Map<string, RTCDataChannel>>(new Map());
   
@@ -120,7 +132,18 @@ export const PartyProvider = ({ children }: { children: ReactNode }) => {
         try {
           const data = JSON.parse(event.data);
           
-          if (data.type === 'offer') {
+          if (data.type === 'rooms_list') {
+            setPublicRooms(data.rooms);
+          } else if (data.type === 'join_auth_result') {
+            if (joinAuthPromiseRef.current) {
+              if (data.success) {
+                joinAuthPromiseRef.current.resolve();
+              } else {
+                joinAuthPromiseRef.current.reject(new Error("Mật khẩu không đúng hoặc phòng không tồn tại"));
+              }
+              joinAuthPromiseRef.current = null;
+            }
+          } else if (data.type === 'offer') {
             await handleOffer(data);
           } else if (data.type === 'answer') {
             await handleAnswer(data);
@@ -279,6 +302,10 @@ export const PartyProvider = ({ children }: { children: ReactNode }) => {
 
   const handleIncomingMessage = (msg: SyncMessage, senderId?: string) => {
     switch (msg.type) {
+      case 'KICK':
+        alert('Bạn đã bị mời ra khỏi phòng.');
+        leaveRoom();
+        break;
       case 'CHAT':
         setChatMessages(prev => [...prev, msg.payload]);
         if (isHostRef.current && senderId) {
@@ -401,7 +428,28 @@ export const PartyProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const createRoom = async (username: string) => {
+  const fetchPublicRooms = async () => {
+    await connectSignaling();
+    if (wsRef.current) {
+      wsRef.current.send(JSON.stringify({ type: 'get_rooms' }));
+    }
+  };
+
+  const kickUser = (peerId: string) => {
+    if (!isHostRef.current) return;
+    const dc = dataChannelsRef.current.get(peerId);
+    if (dc && dc.readyState === 'open') {
+        dc.send(JSON.stringify({ type: 'KICK' }));
+    }
+    const pc = pcsRef.current.get(peerId);
+    if (pc) pc.close();
+    dataChannelsRef.current.delete(peerId);
+    pcsRef.current.delete(peerId);
+    setPeers(prev => prev.filter(p => p !== peerId));
+    setRemoteStreams(prev => prev.filter(s => (s as any).peerId !== peerId));
+  };
+
+  const createRoom = async (username: string, password?: string) => {
     await connectSignaling();
     if (!myIdRef.current) throw new Error("Signaling connection failed");
     
@@ -415,30 +463,56 @@ export const PartyProvider = ({ children }: { children: ReactNode }) => {
     if (!localStreamRef.current) {
       await initLocalStream();
     }
+
+    if (wsRef.current) {
+      wsRef.current.send(JSON.stringify({
+        type: 'create_room',
+        room_id: myIdRef.current,
+        host_name: username,
+        password: password || ''
+      }));
+    }
+
     return myIdRef.current;
   };
 
-  const joinRoom = async (hostId: string, username: string) => {
+  const joinRoom = async (hostId: string, username: string, password?: string) => {
     await connectSignaling();
     if (!myIdRef.current) throw new Error("Signaling connection failed");
-    
-    if (!localStreamRef.current) {
-      await initLocalStream();
-    }
-    
-    setRoomId(hostId);
-    setIsHost(false);
-    isHostRef.current = false;
-    
-    // Send a join request to the host via WebSocket signaling server
-    if (wsRef.current) {
-      wsRef.current.send(JSON.stringify({
-        type: 'join_request',
-        to: hostId,
-        from: myIdRef.current,
-        username
-      }));
-    }
+
+    return new Promise<void>((resolve, reject) => {
+      joinAuthPromiseRef.current = {
+        resolve: async () => {
+          if (!localStreamRef.current) {
+            await initLocalStream();
+          }
+          
+          setRoomId(hostId);
+          setIsHost(false);
+          isHostRef.current = false;
+          
+          // Send a join request to the host via WebSocket signaling server
+          if (wsRef.current) {
+            wsRef.current.send(JSON.stringify({
+              type: 'join_request',
+              to: hostId,
+              from: myIdRef.current,
+              username
+            }));
+          }
+          resolve();
+        },
+        reject
+      };
+
+      if (wsRef.current) {
+        wsRef.current.send(JSON.stringify({
+          type: 'join_room_req',
+          room_id: hostId,
+          password: password || ''
+        }));
+      }
+    });
   };
 
   const leaveRoom = () => {
@@ -469,6 +543,7 @@ export const PartyProvider = ({ children }: { children: ReactNode }) => {
   return (
     <PartyContext.Provider value={{ 
       peerId, roomId, isHost, peers, createRoom, joinRoom, leaveRoom, 
+      publicRooms, fetchPublicRooms, kickUser,
       broadcastSync, lastSyncMessage, remoteStreams, localStream, 
       isMicOn, isVideoOn, initLocalStream, toggleMic, toggleVideo,
       chatMessages, sendChatMessage, partyQueue, addSongToPartyQueue, removeSongFromPartyQueue
