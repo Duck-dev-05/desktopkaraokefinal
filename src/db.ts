@@ -100,6 +100,7 @@ export interface Favorite {
   file_path: string;
 }
 
+
 export interface Achievement {
   id: number;
   user_id: number;
@@ -110,10 +111,28 @@ export interface Achievement {
   earned_at: string;
 }
 
+export interface SearchHistory {
+  id: number;
+  user_id: number;
+  search_query: string;
+  search_timestamp: string;
+}
+
+export interface QueueTemplate {
+  id: number;
+  user_id: number;
+  template_name: string;
+  template_data: string;
+  created_at: string;
+}
+
 let dbInstancePromise: Promise<Database> | null = null;
 
 export const resetDatabase = async () => {
   const db = await initDB();
+  await db.execute("DROP TABLE IF EXISTS queue_templates");
+  await db.execute("DROP TABLE IF EXISTS search_history");
+  await db.execute("DROP TABLE IF EXISTS favorites");
   await db.execute("DROP TABLE IF EXISTS playlist_songs");
   await db.execute("DROP TABLE IF EXISTS playlists");
   await db.execute("DROP TABLE IF EXISTS recordings");
@@ -256,6 +275,27 @@ export const initDB = async () => {
       earned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(user_id) REFERENCES users(id),
       UNIQUE(user_id, achievement_type)
+    )
+  `);
+
+  await dbInstance.execute(`
+    CREATE TABLE IF NOT EXISTS search_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      search_query TEXT NOT NULL,
+      search_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id) REFERENCES users(id)
+    )
+  `);
+
+  await dbInstance.execute(`
+    CREATE TABLE IF NOT EXISTS queue_templates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      template_name TEXT NOT NULL,
+      template_data TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(user_id) REFERENCES users(id)
     )
   `);
 
@@ -488,4 +528,35 @@ export const checkAndAwardAchievements = async (userId: number, recordingsCount:
 export const updateUserProfile = async (id: number, username: string, bio: string, avatar_url: string): Promise<void> => {
   const db = await initDB();
   await db.execute('UPDATE users SET username = $1, bio = $2, avatar_url = $3 WHERE id = $4', [username, bio, avatar_url, id]);
+};
+
+export const addSearchHistory = async (userId: number, query: string) => {
+  const db = await initDB();
+  await db.execute('DELETE FROM search_history WHERE user_id = $1 AND search_query = $2', [userId, query]);
+  await db.execute('INSERT INTO search_history (user_id, search_query) VALUES ($1, $2)', [userId, query]);
+};
+
+export const getSearchHistory = async (userId: number): Promise<SearchHistory[]> => {
+  const db = await initDB();
+  return await db.select('SELECT * FROM search_history WHERE user_id = $1 ORDER BY search_timestamp DESC LIMIT 10', [userId]);
+};
+
+export const clearSearchHistory = async (userId: number) => {
+  const db = await initDB();
+  await db.execute('DELETE FROM search_history WHERE user_id = $1', [userId]);
+};
+
+export const saveQueueTemplate = async (userId: number, name: string, data: string) => {
+  const db = await initDB();
+  await db.execute('INSERT INTO queue_templates (user_id, template_name, template_data) VALUES ($1, $2, $3)', [userId, name, data]);
+};
+
+export const getQueueTemplates = async (userId: number): Promise<QueueTemplate[]> => {
+  const db = await initDB();
+  return await db.select('SELECT * FROM queue_templates WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
+};
+
+export const deleteQueueTemplate = async (templateId: number) => {
+  const db = await initDB();
+  await db.execute('DELETE FROM queue_templates WHERE id = $1', [templateId]);
 };

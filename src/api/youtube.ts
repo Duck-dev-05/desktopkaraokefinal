@@ -17,7 +17,7 @@ export interface YoutubePlaylist {
   description: string;
 }
 
-export const searchYoutubeKaraoke = async (query: string): Promise<YoutubeVideo[]> => {
+export const searchYoutubeKaraoke = async (query: string, duration?: string, order?: string): Promise<YoutubeVideo[]> => {
   // Clean query string to avoid duplicate 'karaoke' keywords
   const normalizedQuery = query.trim();
   const lowerQuery = normalizedQuery.toLowerCase();
@@ -28,7 +28,11 @@ export const searchYoutubeKaraoke = async (query: string): Promise<YoutubeVideo[
   }
 
   try {
-    const responseText = await invoke<string>('search_youtube_cached', { query: finalQuery });
+    const responseText = await invoke<string>('search_youtube_cached', { 
+      query: finalQuery,
+      duration: duration || null,
+      order: order || null
+    });
     const data = JSON.parse(responseText);
 
     if (!data.items || data.items.length === 0) {

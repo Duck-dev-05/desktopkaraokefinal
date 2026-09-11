@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
-import { Search } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Search, Mic, Clock, ListFilter, History, X } from "lucide-react";
 import SongCard from "../components/SongCard";
 import { searchYoutubeKaraoke, YoutubeVideo } from "../api/youtube";
+import { useAuth } from "../context/AuthContext";
+import { addSearchHistory, getSearchHistory, clearSearchHistory, SearchHistory as ISearchHistory } from "../db";
 import "./Explore.css";
 
 
@@ -17,22 +19,53 @@ const MOOD_TAGS = [
 ];
 
 const Explore = () => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeMood, setActiveMood] = useState<string | null>(MOOD_TAGS[0]);
   const [songs, setSongs] = useState<YoutubeVideo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // New State for Advanced Search
+  const [duration, setDuration] = useState<string>("");
+  const [order, setOrder] = useState<string>("relevance");
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Search History
+  const [history, setHistory] = useState<ISearchHistory[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  
+  // Speech Recognition
+  const [isListening, setIsListening] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (activeMood) {
-      fetchCategorySongs(activeMood);
+      fetchCategorySongs(activeMood, "", "relevance");
     }
   }, [activeMood]);
 
-  const fetchCategorySongs = async (query: string) => {
+  useEffect(() => {
+    if (user) {
+      loadHistory();
+    }
+  }, [user]);
+
+  const loadHistory = async () => {
+    if (user) {
+      const hist = await getSearchHistory(user.id);
+      setHistory(hist);
+    }
+  };
+
+  const fetchCategorySongs = async (query: string, dur: string = duration, ord: string = order) => {
     setIsLoading(true);
     try {
-      const results = await searchYoutubeKaraoke(query);
+      const results = await searchYoutubeKaraoke(query, dur, ord);
       setSongs(results);
+      if (user && query && !MOOD_TAGS.includes(query)) {
+        await addSearchHistory(user.id, query);
+        loadHistory();
+      }
     } catch (err) {
       console.error("Error fetching explore category:", err);
     } finally {
@@ -44,28 +77,131 @@ const Explore = () => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
     setActiveMood(null);
+    setShowHistory(false);
     fetchCategorySongs(searchQuery);
   };
 
   const handleMoodTagClick = (tag: string) => {
     setSearchQuery(tag);
     setActiveMood(tag);
-    fetchCategorySongs(tag);
+    setShowHistory(false);
+    fetchCategorySongs(tag, "", "relevance");
+  };
+
+  const handleHistoryClick = (query: string) => {
+    setSearchQuery(query);
+    setActiveMood(null);
+    setShowHistory(false);
+    fetchCategorySongs(query);
+  };
+
+  const handleClearHistory = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (user) {
+      await clearSearchHistory(user.id);
+      setHistory([]);
+    }
+  };
+
+  const handleVoiceSearch = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Trình duyệt của bạn không hỗ trợ tìm kiếm bằng giọng nói.");
+      return;
+    }
+    
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'vi-VN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const speechResult = event.results[0][0].transcript;
+      setSearchQuery(speechResult);
+      setActiveMood(null);
+      fetchCategorySongs(speechResult);
+    };
+
+    recognition.onspeechend = () => {
+      recognition.stop();
+      setIsListening(false);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error", event.error);
+      setIsListening(false);
+    };
+
+    recognition.start();
   };
 
   return (
     <div className="explore-page animate-fade-in">
       {/* Search Header Bar */}
-      <form onSubmit={handleSearchSubmit} className="search-container">
-        <Search className="search-icon" size={22} />
-        <input
-          type="text"
-          placeholder="Tìm kiếm bài hát, nghệ sĩ hoặc bản nhạc karaoke..."
-          className="search-input"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </form>
+      <div className="search-header-wrapper" style={{position: 'relative'}}>
+        <form onSubmit={handleSearchSubmit} className="search-container">
+          <Search className="search-icon" size={22} />
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Tìm kiếm bài hát, nghệ sĩ hoặc bản nhạc karaoke..."
+            className="search-input"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setShowHistory(true)}
+            onBlur={() => setTimeout(() => setShowHistory(false), 200)}
+          />
+          <button type="button" className={`voice-search-btn ${isListening ? 'listening' : ''}`} onClick={handleVoiceSearch} title="Tìm kiếm bằng giọng nói">
+            <Mic size={20} color={isListening ? "#ff4081" : "currentColor"} />
+          </button>
+          <button type="button" className="filter-toggle-btn" onClick={() => setShowFilters(!showFilters)} title="Bộ lọc nâng cao">
+            <ListFilter size={20} />
+          </button>
+        </form>
+
+        {showHistory && history.length > 0 && (
+          <div className="search-history-dropdown glass" style={{position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, marginTop: '0.5rem', borderRadius: '12px', padding: '1rem', background: 'var(--bg-card)'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', color: 'var(--text-muted)'}}>
+              <span style={{fontSize: '0.9rem'}}>Lịch sử tìm kiếm</span>
+              <button onClick={handleClearHistory} style={{background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.8rem'}}>Xóa tất cả</button>
+            </div>
+            {history.map(item => (
+              <div key={item.id} className="history-item" onClick={() => handleHistoryClick(item.search_query)} style={{display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.6rem 0', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.05)'}}>
+                <History size={16} color="var(--text-muted)"/>
+                <span>{item.search_query}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Advanced Filters */}
+      {showFilters && (
+        <div className="advanced-filters animate-fade-in" style={{display: 'flex', gap: '1rem', marginTop: '1rem', background: 'var(--bg-card)', padding: '1rem', borderRadius: '12px'}}>
+          <div className="filter-group">
+            <label style={{fontSize: '0.9rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.5rem'}}><Clock size={14} style={{display: 'inline', verticalAlign: 'middle', marginRight: '0.3rem'}}/> Thời lượng</label>
+            <select value={duration} onChange={(e) => setDuration(e.target.value)} style={{padding: '0.5rem', borderRadius: '8px', background: 'var(--bg-main)', color: 'var(--text-primary)', border: '1px solid rgba(255,255,255,0.1)'}}>
+              <option value="">Bất kỳ</option>
+              <option value="short">Ngắn (&lt; 4 phút)</option>
+              <option value="medium">Trung bình (4-20 phút)</option>
+              <option value="long">Dài (&gt; 20 phút)</option>
+            </select>
+          </div>
+          <div className="filter-group">
+            <label style={{fontSize: '0.9rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.5rem'}}><ListFilter size={14} style={{display: 'inline', verticalAlign: 'middle', marginRight: '0.3rem'}}/> Sắp xếp theo</label>
+            <select value={order} onChange={(e) => setOrder(e.target.value)} style={{padding: '0.5rem', borderRadius: '8px', background: 'var(--bg-main)', color: 'var(--text-primary)', border: '1px solid rgba(255,255,255,0.1)'}}>
+              <option value="relevance">Liên quan nhất</option>
+              <option value="date">Mới nhất</option>
+              <option value="viewCount">Lượt xem nhiều nhất</option>
+              <option value="rating">Đánh giá cao nhất</option>
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* Mood Quick Tags */}
       <div className="mood-tags-container">

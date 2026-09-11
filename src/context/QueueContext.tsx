@@ -10,6 +10,8 @@ interface QueueContextType {
   addToQueue: (video: YoutubeVideo) => void;
   removeFromQueue: (queueId: string) => void;
   clearQueue: () => void;
+  shuffleQueue: () => void;
+  loadQueue: (items: QueuedVideo[]) => void;
   notify: (message: string) => void;
 }
 
@@ -91,8 +93,24 @@ export const QueueProvider = ({ children }: { children: ReactNode }) => {
     syncQueue([]);
   };
 
+  const shuffleQueue = () => {
+    if (queue.length < 2) return;
+    const newQueue = [...queue];
+    for (let i = newQueue.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newQueue[i], newQueue[j]] = [newQueue[j], newQueue[i]];
+    }
+    syncQueue(newQueue);
+    notify("Đã xáo trộn hàng đợi");
+  };
+
+  const loadQueue = (items: QueuedVideo[]) => {
+    syncQueue(items);
+    notify("Đã tải hàng đợi từ mẫu");
+  };
+
   return (
-    <QueueContext.Provider value={{ queue, addToQueue, removeFromQueue, clearQueue, notify }}>
+    <QueueContext.Provider value={{ queue, addToQueue, removeFromQueue, clearQueue, shuffleQueue, loadQueue, notify }}>
       {children}
       {notification && <Toast message={notification} />}
     </QueueContext.Provider>

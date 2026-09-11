@@ -598,11 +598,14 @@ async fn ai_chat(prompt: String, system_prompt: String) -> Result<String, String
 #[tauri::command]
 async fn search_youtube_cached(
     query: String,
+    duration: Option<String>,
+    order: Option<String>,
     state: tauri::State<'_, CacheState>,
 ) -> Result<String, String> {
+    let cache_key = format!("{}-{:?}-{:?}", query, duration, order);
     {
         let cache = state.cache.lock().unwrap();
-        if let Some(result) = cache.get(&query) {
+        if let Some(result) = cache.get(&cache_key) {
             return Ok(result.clone());
         }
     }
@@ -622,10 +625,21 @@ async fn search_youtube_cached(
     let client = reqwest::Client::new();
     let mut last_error = String::new();
 
+    let dur_param = match duration.as_deref() {
+        Some("short") | Some("medium") | Some("long") => format!("&videoDuration={}", duration.unwrap()),
+        _ => "".to_string(),
+    };
+    let ord_param = match order.as_deref() {
+        Some("date") | Some("rating") | Some("relevance") | Some("title") | Some("videoCount") | Some("viewCount") => format!("&order={}", order.unwrap()),
+        _ => "".to_string(),
+    };
+
     for api_key in api_keys {
         let url = format!(
-            "https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q={}&type=video&videoEmbeddable=true&key={}",
+            "https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q={}&type=video&videoEmbeddable=true{}{}&key={}",
             urlencoding::encode(&query),
+            dur_param,
+            ord_param,
             urlencoding::encode(api_key)
         );
         let res = match client.get(&url).send().await {
@@ -639,7 +653,7 @@ async fn search_youtube_cached(
         if res.status().is_success() {
             let text = res.text().await.map_err(|e| e.to_string())?;
             let mut cache = state.cache.lock().unwrap();
-            cache.insert(query, text.clone());
+            cache.insert(cache_key.clone(), text.clone());
             return Ok(text);
         } else if res.status() == 403 {
             // Quota exceeded or forbidden, try next key

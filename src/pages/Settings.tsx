@@ -13,12 +13,12 @@ import "./Settings.css";
 
 // ── Nav section definitions ──────────────────────────────────
 const NAV_SECTIONS = [
-  { id: "appearance",   label: "Giao diện & Ngôn ngữ", icon: SunMoon },
-  { id: "audio-input",  label: "Đầu Vào Âm Thanh", icon: Mic },
-  { id: "audio-output", label: "Đầu Ra Âm Thanh",  icon: Volume2 },
-  { id: "video",        label: "Video & Hiển Thị",  icon: Monitor },
-  { id: "privacy",      label: "Dữ liệu & Quyền riêng tư", icon: Shield },
-  { id: "updates",      label: "Cập Nhật",           icon: RefreshCw },
+  { id: "appearance", label: "Giao diện & Ngôn ngữ", icon: SunMoon },
+  { id: "audio-input", label: "Đầu Vào Âm Thanh", icon: Mic },
+  { id: "audio-output", label: "Đầu Ra Âm Thanh", icon: Volume2 },
+  { id: "video", label: "Video & Hiển Thị", icon: Monitor },
+  { id: "privacy", label: "Dữ liệu & Quyền riêng tư", icon: Shield },
+  { id: "updates", label: "Cập Nhật", icon: RefreshCw },
 ] as const;
 
 const Settings = () => {
@@ -27,7 +27,7 @@ const Settings = () => {
   const { settings, updateSettings } = useSettings();
 
   const [appVersion, setAppVersion] = useState<string>("");
-  const [audioInputs,  setAudioInputs]  = useState<MediaDeviceInfo[]>([]);
+  const [audioInputs, setAudioInputs] = useState<MediaDeviceInfo[]>([]);
   const [audioOutputs, setAudioOutputs] = useState<MediaDeviceInfo[]>([]);
   const [activeSection, setActiveSection] = useState<string>("audio-input");
   const [micVolume, setMicVolume] = useState<number>(0);
@@ -84,7 +84,7 @@ const Settings = () => {
         microphone.connect(analyser);
 
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        
+
         const updateMeter = () => {
           analyser.getByteFrequencyData(dataArray);
           let sum = 0;
@@ -121,7 +121,7 @@ const Settings = () => {
 
       // Apply master volume
       gainNode.gain.value = (settings.masterVolume / 100) * 0.1; // * 0.1 so it's not too loud
-      
+
       // Attempt to route to specific output device if supported (Chrome/Edge only)
       if (settings.outputDevice && settings.outputDevice !== "default" && typeof (audioCtx as any).setSinkId === "function") {
         (audioCtx as any).setSinkId(settings.outputDevice).catch(console.error);
@@ -130,13 +130,13 @@ const Settings = () => {
       oscillator.type = "sine";
       oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
       oscillator.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.5);
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioCtx.destination);
-      
+
       oscillator.start();
       gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.8);
-      
+
       setTimeout(() => {
         oscillator.stop();
         setIsPlayingTest(false);
@@ -153,7 +153,7 @@ const Settings = () => {
         filters: [{ name: 'SQLite Database', extensions: ['db'] }],
         defaultPath: 'karaoke_backup.db'
       });
-      
+
       if (savePath) {
         const appDataPath = await appDataDir();
         const dbPath = await join(appDataPath, 'karaoke.db');
@@ -172,7 +172,7 @@ const Settings = () => {
         filters: [{ name: 'SQLite Database', extensions: ['db'] }],
         multiple: false
       });
-      
+
       if (selected && typeof selected === 'string') {
         const confirmResult = window.confirm("Cảnh báo: Việc nhập dữ liệu sẽ ghi đè toàn bộ dữ liệu hiện tại. Bạn có chắc chắn muốn tiếp tục?");
         if (confirmResult) {
@@ -266,7 +266,7 @@ const Settings = () => {
                 <CustomSelect
                   options={[
                     { value: "light", label: "Giao diện Sáng" },
-                    { value: "dark",  label: "Giao diện Tối" },
+                    { value: "dark", label: "Giao diện Tối" },
                   ]}
                   value={settings.theme || "light"}
                   onChange={(val) => updateSettings({ theme: val })}
@@ -331,8 +331,8 @@ const Settings = () => {
               </div>
               <div style={{ width: "280px", flexShrink: 0, paddingRight: "16px", display: "flex", alignItems: "center" }}>
                 <div className="update-progress-bar" style={{ width: "100%" }}>
-                  <div 
-                    className="update-progress-fill" 
+                  <div
+                    className="update-progress-fill"
                     style={{ width: `${micVolume}%`, transition: 'width 50ms ease-out' }}
                   />
                 </div>
@@ -451,8 +451,8 @@ const Settings = () => {
                 <span className="setting-row-desc">Phát một âm thanh ngắn để kiểm tra loa.</span>
               </div>
               <div style={{ width: "280px", flexShrink: 0, display: "flex", justifyContent: "flex-end", paddingRight: "16px" }}>
-                <button 
-                  className="update-btn update-btn--idle" 
+                <button
+                  className="update-btn update-btn--idle"
                   onClick={testAudioOutput}
                   disabled={isPlayingTest}
                 >
@@ -508,8 +508,8 @@ const Settings = () => {
                 <CustomSelect
                   options={[
                     { value: "1080p", label: "1080p — Chất lượng Cao" },
-                    { value: "720p",  label: "720p — Tiêu chuẩn" },
-                    { value: "480p",  label: "480p — Tiết kiệm Dữ liệu" },
+                    { value: "720p", label: "720p — Tiêu chuẩn" },
+                    { value: "480p", label: "480p — Tiết kiệm Dữ liệu" },
                   ]}
                   value={settings.videoQuality}
                   onChange={(val) => updateSettings({ videoQuality: val })}
@@ -543,7 +543,7 @@ const Settings = () => {
                 <CustomSelect
                   options={[
                     { value: "smooth", label: "Chuyển động mượt mà" },
-                    { value: "word",   label: "Từng chữ một" },
+                    { value: "word", label: "Từng chữ một" },
                   ]}
                   value={settings.lyricsSync}
                   onChange={(val) => updateSettings({ lyricsSync: val })}

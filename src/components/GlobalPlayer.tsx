@@ -23,7 +23,7 @@ import "../pages/SingView_Search_actions.css";
 const GlobalPlayer = () => {
   const { currentVideo, playVideo, closePlayer, audioOffset } = usePlayer();
   const audioOffsetRef = useRef(audioOffset);
-  
+
   useEffect(() => {
     audioOffsetRef.current = audioOffset;
   }, [audioOffset]);
@@ -68,7 +68,7 @@ const GlobalPlayer = () => {
   const [showLLMJudge, setShowLLMJudge] = useState(false);
   const [llmFeedback, setLlmFeedback] = useState("");
   const [isMixerOpen, setIsMixerOpen] = useState(false);
-  
+
   // Live Mixer States
   const { settings, updateSettings } = useSettings();
   const [mixerTab, setMixerTab] = useState<'volumes' | 'effects'>('volumes');
@@ -101,7 +101,7 @@ const GlobalPlayer = () => {
   const meterRef = useRef<Tone.Meter | null>(null);
   const userMediaRef = useRef<Tone.UserMedia | null>(null);
   const ytPlayerRef = useRef<any>(null);
-  
+
   // Download state
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -148,9 +148,9 @@ const GlobalPlayer = () => {
         try {
           const state = ytPlayerRef.current.getPlayerState();
           if (state === 1) {
-             setCurrentTime(ytPlayerRef.current.getCurrentTime());
+            setCurrentTime(ytPlayerRef.current.getCurrentTime());
           }
-        } catch(e) {}
+        } catch (e) { }
       }
       animationFrameId = requestAnimationFrame(trackTime);
     };
@@ -216,7 +216,7 @@ const GlobalPlayer = () => {
   useEffect(() => {
     const reconnectMic = async () => {
       if (hasAmplifier) return;
-      
+
       // Request permission briefly so Settings can detect labels
       try {
         const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -226,23 +226,23 @@ const GlobalPlayer = () => {
       }
 
       if (!isMicEnabledRef.current) return;
-      
+
       try {
         await Tone.start();
         const devices = await navigator.mediaDevices.enumerateDevices();
         const mics = devices.filter(device => device.kind === 'audioinput');
-        
+
         if (mics.length > 0) {
-          const constraints = { 
+          const constraints = {
             audio: {
               noiseSuppression: settings.noiseSuppression,
               echoCancellation: settings.noiseSuppression,
-            } 
+            }
           };
           const stream = await navigator.mediaDevices.getUserMedia(constraints);
           const deviceId = settings.micDevice === 'default' ? (stream.getAudioTracks()[0].getSettings().deviceId || 'default') : settings.micDevice;
           stream.getTracks().forEach(t => t.stop());
-          
+
           if (userMediaRef.current) {
             userMediaRef.current.close();
           }
@@ -365,7 +365,7 @@ const GlobalPlayer = () => {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const mics = devices.filter(device => device.kind === 'audioinput');
-      
+
       if (mics.length > 1) {
         setAvailableMics(mics);
         setIsMicSelectOpen(true);
@@ -373,17 +373,17 @@ const GlobalPlayer = () => {
       }
 
       await Tone.start();
-      
-      const constraints = { 
+
+      const constraints = {
         audio: {
           noiseSuppression: settings.noiseSuppression,
           echoCancellation: settings.noiseSuppression,
-        } 
+        }
       };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       const deviceId = settings.micDevice === 'default' ? (stream.getAudioTracks()[0].getSettings().deviceId || 'default') : settings.micDevice;
       stream.getTracks().forEach(t => t.stop());
-      
+
       await connectMic(deviceId);
     } catch (permissionErr) {
       console.warn("Microphone permission denied or ignored.", permissionErr);
@@ -394,7 +394,7 @@ const GlobalPlayer = () => {
   const connectMic = async (deviceId: string) => {
     try {
       await Tone.start();
-      
+
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           deviceId: { exact: deviceId },
@@ -402,7 +402,7 @@ const GlobalPlayer = () => {
           echoCancellation: settings.noiseSuppression
         }
       });
-      
+
       const mediaStreamSource = new Tone.UserMedia();
       const meter = new Tone.Meter();
       Tone.connect(mediaStreamSource, meter);
@@ -410,10 +410,10 @@ const GlobalPlayer = () => {
       // Create DSP Engine
       const vocalVolNode = new Tone.Volume(vocalVol === 0 ? -100 : 20 * Math.log10(vocalVol / 100));
       const echoNode = new Tone.FeedbackDelay(0.3, 0.3); // 300ms delay, 30% feedback
-      const reverbNode = new Tone.Freeverb(); 
+      const reverbNode = new Tone.Freeverb();
       reverbNode.roomSize.value = 0.8;
       reverbNode.dampening = 2000;
-      
+
       // Initial states
       echoNode.wet.value = echo / 100;
       reverbNode.wet.value = echo / 100;
@@ -423,13 +423,13 @@ const GlobalPlayer = () => {
       echoNode.connect(reverbNode);
       reverbNode.connect(vocalVolNode);
       vocalVolNode.toDestination();
-      
+
       vocalVolNodeRef.current = vocalVolNode;
       echoNodeRef.current = echoNode;
       reverbNodeRef.current = reverbNode;
 
       await mediaStreamSource.open();
-      
+
       (mediaStreamSource as any)._stream = stream;
       userMediaRef.current = mediaStreamSource as any;
       meterRef.current = meter;
@@ -452,13 +452,13 @@ const GlobalPlayer = () => {
 
   const startMediaRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: isCameraEnabled, 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: isCameraEnabled,
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true
-        } 
+        }
       });
       setRecordingStream(stream);
 
@@ -496,29 +496,29 @@ const GlobalPlayer = () => {
 
           const displayTitle = currentVideo ? currentVideo.title : fileName;
           const videoId = currentVideo ? currentVideo.id : '';
-          
+
           if (currentRecordingPathRef.current) {
-             const inputPath = currentRecordingPathRef.current;
-             notify("Đang xử lý và chuyển đổi bản thu, vui lòng đợi...");
-             
-             const ext = isCameraEnabled ? '.mp4' : '.mp3';
-             const outName = `${isCameraEnabled ? 'VideoRecord' : 'AudioRecord'}_${Date.now()}${ext}`;
-             const outPath = await join(recDir, outName);
-             
-             try {
-                const finalPath = await invoke<string>("convert_media", { 
-                    inputPath: inputPath, 
-                    outputPath: outPath, 
-                    isVideo: isCameraEnabled 
-                });
-                
-                await addAudioRecording(displayTitle, finalPath, durationStr, videoId);
-                notify(`Đã lưu ${isCameraEnabled ? 'video' : 'âm thanh'} bản thu thành công!`);
-             } catch (convertErr) {
-                console.error("FFmpeg conversion failed:", convertErr);
-                await addAudioRecording(displayTitle, inputPath, durationStr, videoId);
-                notify(`Chuyển đổi thất bại, đã lưu file gốc (.webm). Lỗi: ${convertErr}`);
-             }
+            const inputPath = currentRecordingPathRef.current;
+            notify("Đang xử lý và chuyển đổi bản thu, vui lòng đợi...");
+
+            const ext = isCameraEnabled ? '.mp4' : '.mp3';
+            const outName = `${isCameraEnabled ? 'VideoRecord' : 'AudioRecord'}_${Date.now()}${ext}`;
+            const outPath = await join(recDir, outName);
+
+            try {
+              const finalPath = await invoke<string>("convert_media", {
+                inputPath: inputPath,
+                outputPath: outPath,
+                isVideo: isCameraEnabled
+              });
+
+              await addAudioRecording(displayTitle, finalPath, durationStr, videoId);
+              notify(`Đã lưu ${isCameraEnabled ? 'video' : 'âm thanh'} bản thu thành công!`);
+            } catch (convertErr) {
+              console.error("FFmpeg conversion failed:", convertErr);
+              await addAudioRecording(displayTitle, inputPath, durationStr, videoId);
+              notify(`Chuyển đổi thất bại, đã lưu file gốc (.webm). Lỗi: ${convertErr}`);
+            }
           }
         } catch (err) {
           console.error("Save recording error", err);
@@ -622,16 +622,16 @@ const GlobalPlayer = () => {
 
   const handleDownload = async () => {
     if (!currentVideo || isDownloading) return;
-    
+
     // Don't download if it's already a local file
     if (currentVideo.isLocal) {
       notify("Đây đã là tệp ngoại tuyến!");
       return;
     }
-    
+
     setIsDownloading(true);
     notify(`Bắt đầu tải xuống: ${currentVideo.title}...`);
-    
+
     try {
       const filePath = await invoke<string>("download_video", { videoId: currentVideo.id });
       await addDownload(currentVideo.id, currentVideo.title, filePath, currentVideo.thumbnail, currentVideo.channelTitle);
@@ -649,10 +649,10 @@ const GlobalPlayer = () => {
     setShowLLMJudge(false);
     if (activeQueue.length > 0) {
       const nextSong = activeQueue[0];
-      
+
       if (roomId) removeSongFromPartyQueue(0);
       else localRemoveFromQueue(nextSong.queueId as string);
-      
+
       playVideo(nextSong);
     } else {
       notify("Không còn bài hát nào trong hàng đợi!");
@@ -782,40 +782,71 @@ const GlobalPlayer = () => {
         position: 'fixed',
         top: 0, left: 0, right: 0, bottom: 0,
         backgroundColor: '#09090b',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white',
-        fontFamily: 'Inter, sans-serif',
+        overflow: 'hidden',
         zIndex: 999
       }}>
-        <div style={{
-          background: 'linear-gradient(45deg, #a855f7, #ec4899)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          fontSize: '6rem',
-          fontWeight: 900,
-          marginBottom: '1rem',
-          filter: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.4))'
-        }}>
-          Karaoke<span style={{ color: 'white', WebkitTextFillColor: 'white' }}>Pro</span>
+        {/* Landscape Background Video */}
+        <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '120%', height: '120%', zIndex: 0, opacity: 0.6, pointerEvents: 'none' }}>
+          <YouTube
+            videoId="W0LHTWG-UmQ" // Beautiful Nature Landscape 4K
+            opts={{
+              width: '100%',
+              height: '100%',
+              playerVars: {
+                autoplay: 1,
+                controls: 0,
+                disablekb: 1,
+                modestbranding: 1,
+                fs: 0,
+                mute: 1,
+                loop: 1,
+                playlist: "W0LHTWG-UmQ"
+              }
+            }}
+            style={{ width: '100%', height: '100%' }}
+            iframeClassName="youtube-iframe-full"
+          />
         </div>
-        <p style={{ fontSize: '1.75rem', color: '#a1a1aa', fontWeight: 500 }}>
-          Sẵn sàng! Vui lòng chọn bài hát từ màn hình điều khiển...
-        </p>
+        
+        {/* Overlay Content */}
         <div style={{
-          marginTop: '4rem',
-          padding: '1rem 2rem',
-          background: 'rgba(255,255,255,0.05)',
-          borderRadius: '16px',
-          border: '1px solid rgba(255,255,255,0.1)',
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
           display: 'flex',
-          gap: '1rem',
-          alignItems: 'center'
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontFamily: 'Inter, sans-serif',
+          zIndex: 1
         }}>
-          <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#4ade80', boxShadow: '0 0 10px #4ade80' }} />
-          <span style={{ color: '#d4d4d8', fontSize: '1.2rem' }}>Đã kết nối với màn hình điều khiển</span>
+          <div style={{
+            background: 'linear-gradient(45deg, #a855f7, #ec4899)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontSize: '6rem',
+            fontWeight: 900,
+            marginBottom: '1rem',
+            filter: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.4))'
+          }}>
+            Karaoke<span style={{ color: 'white', WebkitTextFillColor: 'white' }}>Pro</span>
+          </div>
+          <p style={{ fontSize: '1.75rem', color: '#e4e4e7', fontWeight: 500, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+            Sẵn sàng! Vui lòng chọn bài hát từ màn hình điều khiển...
+          </p>
+          <div style={{
+            marginTop: '4rem',
+            padding: '1rem 2rem',
+            background: 'rgba(0,0,0,0.4)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '16px',
+            border: '1px solid rgba(255,255,255,0.1)',
+            display: 'flex',
+            gap: '1rem',
+            alignItems: 'center'
+          }}>
+            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#4ade80', boxShadow: '0 0 10px #4ade80' }} />
+            <span style={{ color: '#d4d4d8', fontSize: '1.2rem', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>Đã kết nối với màn hình điều khiển</span>
+          </div>
         </div>
       </div>
     );
@@ -855,8 +886,8 @@ const GlobalPlayer = () => {
             <YouTube
               videoId={currentVideo.id}
               opts={opts}
-              onReady={(e) => { 
-                ytPlayerRef.current = e.target; 
+              onReady={(e) => {
+                ytPlayerRef.current = e.target;
                 e.target.setVolume(Math.min(100, beatVol));
               }}
               onEnd={handleVideoEnd}
@@ -927,7 +958,7 @@ const GlobalPlayer = () => {
 
       {/* Fullscreen UI (Sing View Overlay) */}
       <div className="sing-view-container" style={{ position: 'fixed', zIndex: 999, pointerEvents: 'none', background: 'transparent' }}>
-        
+
         <div style={{ position: 'absolute', inset: 0, zIndex: 5, pointerEvents: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: '20vh' }}>
           {lrcText && <LyricsDisplay lrcText={lrcText} currentTime={currentTime} />}
         </div>
@@ -958,16 +989,16 @@ const GlobalPlayer = () => {
             {/* Media & Recording */}
             <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '16px', padding: '4px', gap: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
               {/* Download */}
-              <button 
-                className={`btn icon-btn ${isDownloading ? 'text-primary' : ''}`} 
-                onClick={handleDownload} 
-                disabled={isDownloading} 
-                title="Tải xuống bài hát này" 
+              <button
+                className={`btn icon-btn ${isDownloading ? 'text-primary' : ''}`}
+                onClick={handleDownload}
+                disabled={isDownloading}
+                title="Tải xuống bài hát này"
                 style={{ border: 'none', background: 'transparent', boxShadow: 'none' }}
               >
                 {isDownloading ? <Loader2 size={22} className="spin" color="var(--primary)" /> : <Download size={22} />}
               </button>
-              
+
               <button className={`btn icon-btn ${isCameraEnabled ? 'text-primary' : ''}`} onClick={() => setIsCameraEnabled(!isCameraEnabled)} disabled={isRecording} title={isCameraEnabled ? "Tắt Camera" : "Bật Camera"} style={{ border: 'none', background: 'transparent', boxShadow: 'none' }}>
                 {isCameraEnabled ? <Camera size={22} /> : <CameraOff size={22} color="var(--text-muted)" />}
               </button>
@@ -981,7 +1012,7 @@ const GlobalPlayer = () => {
 
             {/* Tools */}
             <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '16px', padding: '4px', gap: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <button className={`btn icon-btn ${isMixerOpen ? 'text-primary' : ''}`} onClick={() => {setIsMixerOpen(!isMixerOpen); setIsMicSelectOpen(false);}} title="Live Mixer" style={{ border: 'none', background: 'transparent', boxShadow: 'none' }}>
+              <button className={`btn icon-btn ${isMixerOpen ? 'text-primary' : ''}`} onClick={() => { setIsMixerOpen(!isMixerOpen); setIsMicSelectOpen(false); }} title="Live Mixer" style={{ border: 'none', background: 'transparent', boxShadow: 'none' }}>
                 <Sliders size={22} />
               </button>
             </div>
@@ -999,16 +1030,16 @@ const GlobalPlayer = () => {
             <h3 style={{ color: 'white', marginTop: 0, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem' }}>
               <Sliders size={18} color="var(--primary)" /> Live Mixer
             </h3>
-            
+
             {/* Tabs */}
             <div style={{ display: 'flex', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', padding: '4px', marginBottom: '1.25rem' }}>
-              <button 
+              <button
                 onClick={() => setMixerTab('volumes')}
                 style={{ flex: 1, padding: '8px', border: 'none', background: mixerTab === 'volumes' ? 'var(--primary)' : 'transparent', color: mixerTab === 'volumes' ? 'white' : 'rgba(255,255,255,0.6)', borderRadius: '8px', fontSize: '0.85rem', fontWeight: mixerTab === 'volumes' ? 'bold' : 'normal', cursor: 'pointer', transition: 'all 0.2s' }}
               >
                 Âm Lượng
               </button>
-              <button 
+              <button
                 onClick={() => setMixerTab('effects')}
                 style={{ flex: 1, padding: '8px', border: 'none', background: mixerTab === 'effects' ? 'var(--primary)' : 'transparent', color: mixerTab === 'effects' ? 'white' : 'rgba(255,255,255,0.6)', borderRadius: '8px', fontSize: '0.85rem', fontWeight: mixerTab === 'effects' ? 'bold' : 'normal', cursor: 'pointer', transition: 'all 0.2s' }}
               >
@@ -1034,7 +1065,7 @@ const GlobalPlayer = () => {
                   <input type="range" min="0" max="150" value={beatVol} onChange={(e) => {
                     const vol = Number(e.target.value);
                     setBeatVol(vol);
-                    if (ytPlayerRef.current) ytPlayerRef.current.setVolume(Math.min(100, vol)); 
+                    if (ytPlayerRef.current) ytPlayerRef.current.setVolume(Math.min(100, vol));
                   }} style={{ width: '100%', accentColor: 'var(--primary)' }} />
                 </div>
               </div>
@@ -1279,10 +1310,10 @@ const GlobalPlayer = () => {
                       <p style={{ fontSize: '0.8rem' }}>{video.channelTitle}</p>
                     </div>
                     <div className="overlay-result-actions" style={{ gap: '0.5rem' }}>
-                      <button className="btn" onClick={() => { 
-                        playVideo(video); 
+                      <button className="btn" onClick={() => {
+                        playVideo(video);
                         if (roomId) removeSongFromPartyQueue(idx); else localRemoveFromQueue(video.queueId as string);
-                        setIsQueueOpen(false); 
+                        setIsQueueOpen(false);
                       }} title="Phát ngay" style={{ padding: '0.5rem' }}>
                         <Play size={16} fill="white" />
                       </button>
