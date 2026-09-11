@@ -33,6 +33,13 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import NetworkStatus from "./components/NetworkStatus";
 import Updater, { UpdaterProvider } from "./components/Updater";
 import BinaryChecker from "./components/BinaryChecker";
+import { useDeviceDetection } from "./hooks/useDeviceDetection";
+
+const MainWindowPlayerWrapper = () => {
+  const { hasMultipleMonitors } = useDeviceDetection();
+  if (hasMultipleMonitors) return null;
+  return <GlobalPlayer isMainWindow={true} />;
+};
 
 function App() {
   const [isPlayerWindow, setIsPlayerWindow] = useState(false);
@@ -108,6 +115,7 @@ function App() {
 
                         {/* Persistent Global Player (Remote Control for main window) */}
                         <RemoteControl />
+                        <MainWindowPlayerWrapper />
                         <NetworkStatus />
                         <Updater />
                       </Router>

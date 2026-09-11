@@ -91,6 +91,15 @@ const MainLayout = () => {
         } catch (e) {
           console.error("Failed to auto-open TV Display", e);
         }
+      } else if (!hasMultipleMonitors && window.__TAURI_INTERNALS__) {
+        try {
+          const webview = await WebviewWindow.getByLabel('karaoke-player');
+          if (webview) {
+            await webview.close();
+          }
+        } catch (e) {
+          console.error("Failed to close TV Display", e);
+        }
       }
     };
     

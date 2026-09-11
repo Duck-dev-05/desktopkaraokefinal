@@ -20,7 +20,11 @@ import "../pages/SingView.css";
 import "../pages/SingView_Search.css";
 import "../pages/SingView_Search_actions.css";
 
-const GlobalPlayer = () => {
+interface GlobalPlayerProps {
+  isMainWindow?: boolean;
+}
+
+const GlobalPlayer = ({ isMainWindow }: GlobalPlayerProps) => {
   const { currentVideo, playVideo, closePlayer, audioOffset } = usePlayer();
   const audioOffsetRef = useRef(audioOffset);
 
@@ -777,6 +781,7 @@ const GlobalPlayer = () => {
   };
 
   if (!currentVideo) {
+    if (isMainWindow) return null;
     return (
       <div style={{
         position: 'fixed',
@@ -829,23 +834,6 @@ const GlobalPlayer = () => {
             filter: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.4))'
           }}>
             Karaoke<span style={{ color: 'white', WebkitTextFillColor: 'white' }}>Pro</span>
-          </div>
-          <p style={{ fontSize: '1.75rem', color: '#e4e4e7', fontWeight: 500, textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-            Sẵn sàng! Vui lòng chọn bài hát từ màn hình điều khiển...
-          </p>
-          <div style={{
-            marginTop: '4rem',
-            padding: '1rem 2rem',
-            background: 'rgba(0,0,0,0.4)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '16px',
-            border: '1px solid rgba(255,255,255,0.1)',
-            display: 'flex',
-            gap: '1rem',
-            alignItems: 'center'
-          }}>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#4ade80', boxShadow: '0 0 10px #4ade80' }} />
-            <span style={{ color: '#d4d4d8', fontSize: '1.2rem', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>Đã kết nối với màn hình điều khiển</span>
           </div>
         </div>
       </div>
