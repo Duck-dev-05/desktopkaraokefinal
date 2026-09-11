@@ -1,89 +1,29 @@
-.audio-recorder-container {
-  padding: var(--space-6);
-  border-radius: var(--radius-lg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  margin-bottom: var(--space-6);
-  transition: all 0.3s ease;
+/* AudioRecorder — Dark Space Neon */
+.audio-recorder{
+  background:rgba(15,16,32,0.90);border:1px solid rgba(236,72,153,0.18);
+  border-radius:var(--radius-xl);padding:var(--space-6);
+  backdrop-filter:blur(16px);display:flex;flex-direction:column;gap:var(--space-4);
 }
+.audio-recorder-header{display:flex;align-items:center;justify-content:space-between;}
+.recorder-title{font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:var(--space-2);}
+.recorder-title svg{color:var(--secondary);filter:drop-shadow(0 0 8px rgba(236,72,153,0.55));animation:neon-pulse-pink 2s ease-in-out infinite;}
+.recorder-status{display:inline-flex;align-items:center;gap:var(--space-2);padding:3px 12px;border-radius:var(--radius-full);font-size:0.68rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;}
+.recorder-status.recording{background:rgba(236,72,153,0.14);border:1px solid rgba(236,72,153,0.35);color:#f9a8d4;animation:neon-pulse-pink 1.5s ease-in-out infinite;}
+.recorder-status.idle{background:rgba(124,58,237,0.10);border:1px solid rgba(124,58,237,0.22);color:var(--primary-bright);}
 
-.recorder-active-view, .recorder-preview-view {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-4);
-  width: 100%;
-}
+/* Waveform viz */
+.recorder-waveform{height:60px;display:flex;align-items:center;justify-content:center;gap:3px;background:rgba(236,72,153,0.04);border-radius:var(--radius-md);border:1px solid rgba(236,72,153,0.10);}
+.recorder-bar{width:3px;border-radius:var(--radius-full);background:linear-gradient(180deg,var(--secondary),var(--primary));min-height:4px;transition:height 0.1s ease;}
 
-.recording-indicator {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: var(--bg-card);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s ease;
-}
+/* Timer */
+.recorder-timer{text-align:center;font-family:var(--font-display);font-size:2rem;font-weight:800;color:var(--secondary);text-shadow:0 0 20px rgba(236,72,153,0.50);font-variant-numeric:tabular-nums;}
 
-.recording-indicator.pulse {
-  background: rgba(239, 68, 68, 0.1);
-  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
-  animation: pulse-red 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
-}
-
-@keyframes pulse-red {
-  to {
-    box-shadow: 0 0 0 30px rgba(239, 68, 68, 0);
-  }
-}
-
-.recording-time {
-  font-size: 2rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-primary);
-  letter-spacing: 2px;
-}
-
-.recorder-controls {
-  display: flex;
-  gap: var(--space-4);
-  margin-top: var(--space-2);
-}
-
-.btn-round {
-  border-radius: 99px;
-  padding: var(--space-3) var(--space-6);
-}
-
-.recorder-preview-view h3 {
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.audio-preview-element {
-  width: 100%;
-  max-width: 400px;
-  margin: var(--space-4) 0;
-}
-
-.preview-controls {
-  display: flex;
-  gap: var(--space-4);
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
+/* Controls */
+.recorder-controls{display:flex;align-items:center;justify-content:center;gap:var(--space-4);}
+.recorder-btn{width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--transition-spring);}
+.recorder-btn.primary{background:var(--gradient-neon);color:#fff;box-shadow:var(--neon-glow-purple);}
+.recorder-btn.primary:hover{transform:scale(1.10);box-shadow:0 0 30px rgba(124,58,237,0.60);}
+.recorder-btn.secondary{background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.22);color:var(--primary-bright);}
+.recorder-btn.secondary:hover{background:rgba(124,58,237,0.22);}
+.recorder-btn.danger{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.28);color:#f87171;}
+.recorder-btn.danger:hover{background:rgba(239,68,68,0.22);box-shadow:0 0 16px rgba(239,68,68,0.25);}

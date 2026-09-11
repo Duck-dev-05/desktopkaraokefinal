@@ -1,47 +1,33 @@
-/* ═══════════════════════════════════════════════════════════
-   HISTORY PAGE — Premium v2
-   ═══════════════════════════════════════════════════════════ */
+/* History — Dark Space Neon */
+.history-page{display:flex;flex-direction:column;gap:var(--space-6);padding-bottom:120px;animation:fadeIn var(--transition-slow) ease-out both;}
 
-.history-page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  padding-bottom: 140px;
-  animation: fadeIn var(--transition-slow) ease-out both;
+.history-group-label{
+  font-size:0.70rem;font-weight:700;color:rgba(124,58,237,0.55);
+  letter-spacing:0.10em;text-transform:uppercase;padding:var(--space-4) 0 var(--space-2);
+  border-bottom:1px solid rgba(124,58,237,0.10);margin-bottom:var(--space-2);
 }
 
-/* ─── Header ─────────────────────────────────── */
-.history-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0;
+.history-list{display:flex;flex-direction:column;gap:var(--space-2);}
+.history-item{
+  display:flex;align-items:center;gap:var(--space-4);
+  padding:var(--space-3) var(--space-5);
+  background:rgba(15,16,32,0.75);border:1px solid rgba(124,58,237,0.08);
+  border-radius:var(--radius-lg);cursor:pointer;
+  transition:all var(--transition-base);
 }
+.history-item:hover{background:rgba(20,22,37,0.90);border-color:rgba(124,58,237,0.22);transform:translateX(4px);box-shadow:var(--shadow-md);}
+.history-thumb{width:50px;height:38px;border-radius:var(--radius-sm);object-fit:cover;flex-shrink:0;border:1px solid rgba(124,58,237,0.12);}
+.history-info{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0;}
+.history-title{font-weight:600;color:var(--text-primary);font-size:0.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em;}
+.history-channel{font-size:0.73rem;color:var(--text-secondary);}
+.history-time{font-size:0.72rem;color:var(--primary-bright);font-weight:600;flex-shrink:0;letter-spacing:0.01em;}
+.history-duration{font-size:0.72rem;color:var(--text-muted);font-variant-numeric:tabular-nums;flex-shrink:0;}
 
-.history-header h1 {
-  font-size: 2.2rem;
-  font-weight: 900;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -0.03em;
+.history-play-btn{
+  width:30px;height:30px;border-radius:50%;border:none;
+  background:rgba(124,58,237,0.12);color:var(--primary-bright);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:all var(--transition-base);flex-shrink:0;
 }
-
-/* ─── History Grid ────────────────────────────── */
-.history-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: var(--space-5);
-}
-
-/* Song cards in grid get staggered entry */
-.history-grid > *:nth-child(1)  { animation: scaleIn var(--transition-slow) 40ms  ease-out both; }
-.history-grid > *:nth-child(2)  { animation: scaleIn var(--transition-slow) 80ms  ease-out both; }
-.history-grid > *:nth-child(3)  { animation: scaleIn var(--transition-slow) 120ms ease-out both; }
-.history-grid > *:nth-child(4)  { animation: scaleIn var(--transition-slow) 160ms ease-out both; }
-.history-grid > *:nth-child(5)  { animation: scaleIn var(--transition-slow) 200ms ease-out both; }
-.history-grid > *:nth-child(n+6){ animation: scaleIn var(--transition-slow) 240ms ease-out both; }
-
-/* ─── Empty State ─────────────────────────────── */
-/* Uses global .empty-state utility class */
+.history-item:hover .history-play-btn{opacity:1;}
+.history-play-btn:hover{background:var(--gradient-neon);box-shadow:var(--neon-glow-purple);}

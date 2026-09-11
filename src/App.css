@@ -1,8 +1,5 @@
-/* App-wide structural overrides */
-#root {
-  width: 100vw;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+/* App — resets to ensure dark theme baseline */
+body {
+  background: #0a0b14;
+  color: #e8eaf6;
 }

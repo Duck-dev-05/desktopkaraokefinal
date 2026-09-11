@@ -1,4 +1,4 @@
-﻿/* ════════════════════════════════════════════
+/* ════════════════════════════════════════════
    Duets Page
 ════════════════════════════════════════════ */
 
@@ -12,8 +12,8 @@
   border-radius: var(--radius-2xl);
   padding: 2.5rem 2rem;
   margin-bottom: 2.5rem;
-  background: linear-gradient(135deg, rgba(157, 78, 221, 0.15) 0%, rgba(99, 102, 241, 0.08) 60%, transparent 100%);
-  border: 1px solid rgba(157, 78, 221, 0.2);
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.14) 0%, rgba(236, 72, 153, 0.06) 60%, transparent 100%);
+  border: 1px solid rgba(124, 58, 237, 0.20);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -29,7 +29,7 @@
   width: 280px;
   height: 280px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(157, 78, 221, 0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.18) 0%, transparent 70%);
   pointer-events: none;
 }
 

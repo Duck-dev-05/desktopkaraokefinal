@@ -5,7 +5,7 @@
   width: 100vw;
   height: 100vh;
   z-index: 1000;
-  background: var(--bg-main);
+  background: var(--bg-primary);
   display: flex;
   flex-direction: column;
 }
@@ -121,9 +121,9 @@
 }
 
 .lyric-line.active {
-  color: var(--text-primary);
+  color: #fff;
   transform: scale(1.05);
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 0 20px rgba(167, 139, 250, 0.55), 0 0 40px rgba(124, 58, 237, 0.30);
 }
 
 .lyric-line.passed {
@@ -147,8 +147,8 @@
   background: var(--bg-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-xl);
+  border: 1px solid rgba(124, 58, 237, 0.20);
+  box-shadow: var(--shadow-xl), var(--shadow-glow);
 }
 
 .score-value {
@@ -188,10 +188,10 @@
   position: absolute;
   width: 16px;
   height: 16px;
-  background: var(--primary);
+  background: var(--primary-bright);
   border-radius: var(--radius-full);
   top: 50%;
   transform: translateY(-50%);
-  box-shadow: var(--shadow-glow);
+  box-shadow: var(--neon-glow-purple);
   transition: left 0.1s linear;
 }

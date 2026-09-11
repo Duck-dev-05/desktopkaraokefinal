@@ -27,12 +27,20 @@ const SongCard = ({ id, title, artist, coverUrl }: SongCardProps) => {
         channelTitle: artist,
         thumbnail: coverUrl
       };
-      
-      if (currentVideo) {
-        addToQueue(video);
-      } else {
-        playVideo(video);
-      }
+      playVideo(video);
+    }
+  };
+
+  const handleQueue = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (id) {
+      const video = {
+        id: String(id),
+        title: title,
+        channelTitle: artist,
+        thumbnail: coverUrl
+      };
+      addToQueue(video);
     }
   };
 
@@ -65,11 +73,25 @@ const SongCard = ({ id, title, artist, coverUrl }: SongCardProps) => {
 
       {/* Playing ring */}
       {currentVideo?.id === String(id) && <div className="playing-ring" />}
-      
-      {/* Play/Queue Button (Center) */}
-      <button className="play-overlay btn" title={currentVideo && id ? "Thêm vào Hàng đợi" : "Phát"}>
-        {currentVideo && id ? <Plus size={26} color="white" /> : <Play size={22} fill="white" color="white" />}
-      </button>
+      {/* Play/Queue Actions (Center) */}
+      <div className="play-actions-overlay">
+        <button 
+          className="action-btn play-btn" 
+          title="Phát ngay"
+          onClick={handlePlay}
+        >
+          <Play size={20} fill="white" color="white" />
+        </button>
+        {currentVideo && (
+          <button 
+            className="action-btn queue-btn" 
+            title="Thêm vào hàng đợi"
+            onClick={handleQueue}
+          >
+            <Plus size={22} color="white" />
+          </button>
+        )}
+      </div>
 
       {/* Download Button (Top Right) */}
       <button 

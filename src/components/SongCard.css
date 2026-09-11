@@ -1,36 +1,94 @@
-﻿/* SongCard v5 - Modern Clean */
-.song-card{position:relative;border-radius:16px;overflow:hidden;cursor:pointer;transition:all var(--transition-spring);aspect-ratio:3/4;background:var(--bg-card);border:1px solid var(--border-default);isolation:isolate;}
-.song-card::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(139,92,246,0.04));opacity:0;transition:opacity var(--transition-base);z-index:1;pointer-events:none;}
-.song-card:hover{transform:translateY(-4px) scale(1.02);box-shadow:var(--shadow-lg);border-color:var(--border-focus);}
+/* SongCard — Dark Space Neon */
+.song-card{
+  position:relative;border-radius:16px;overflow:hidden;cursor:pointer;
+  transition:all var(--transition-spring);aspect-ratio:3/4;
+  background:var(--bg-card);
+  border:1px solid rgba(124,58,237,0.14);
+  isolation:isolate;
+}
+.song-card::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(236,72,153,0.06));
+  opacity:0;transition:opacity var(--transition-base);z-index:1;pointer-events:none;
+}
+.song-card:hover{
+  transform:translateY(-5px) scale(1.02);
+  box-shadow:var(--shadow-lg),0 0 30px rgba(124,58,237,0.20);
+  border-color:rgba(124,58,237,0.40);
+}
 .song-card:hover::before{opacity:1;}
 .song-card:active{transform:translateY(-2px) scale(1.01);}
 
 .card-image{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s ease;}
-.song-card:hover .card-image{transform:scale(1.05);}
+.song-card:hover .card-image{transform:scale(1.06);}
 
-/* Subtle gradient overlay */
-.card-gradient-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.02) 0%,rgba(0,0,0,0.08) 40%,rgba(0,0,0,0.75) 100%);z-index:2;pointer-events:none;}
+/* Gradient overlay */
+.card-gradient-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(10,11,20,0.02) 0%,rgba(10,11,20,0.10) 40%,rgba(10,11,20,0.88) 100%);
+  z-index:2;pointer-events:none;
+}
 
-/* Subtle glow on hover */
-.card-glow{position:absolute;bottom:-20%;left:50%;transform:translateX(-50%);width:80%;height:80%;background:radial-gradient(ellipse,rgba(59,130,246,0.15) 0%,transparent 70%);filter:blur(16px);opacity:0;transition:opacity 0.3s ease;z-index:1;pointer-events:none;}
+/* Neon glow on hover */
+.card-glow{
+  position:absolute;bottom:-25%;left:50%;transform:translateX(-50%);
+  width:85%;height:85%;
+  background:radial-gradient(ellipse,rgba(124,58,237,0.25) 0%,transparent 70%);
+  filter:blur(20px);opacity:0;transition:opacity 0.35s ease;z-index:1;pointer-events:none;
+}
 .song-card:hover .card-glow{opacity:1;}
 
 /* Playing indicator */
-.playing-ring{position:absolute;inset:-2px;border-radius:18px;border:2px solid transparent;background:linear-gradient(var(--bg-card),var(--bg-card)) padding-box,linear-gradient(135deg,var(--primary),var(--secondary)) border-box;z-index:5;pointer-events:none;animation:pulse-glow 2s ease-in-out infinite;}
-.song-card.is-playing{border-color:var(--primary);box-shadow:0 0 0 1px rgba(59,130,246,0.2),0 0 20px rgba(59,130,246,0.15);}
+.playing-ring{
+  position:absolute;inset:-2px;border-radius:18px;border:2px solid transparent;
+  background:linear-gradient(var(--bg-card),var(--bg-card)) padding-box,
+             linear-gradient(135deg,var(--primary),var(--secondary)) border-box;
+  z-index:5;pointer-events:none;animation:neon-pulse 2s ease-in-out infinite;
+}
+.song-card.is-playing{
+  border-color:var(--primary);
+  box-shadow:0 0 0 1px rgba(124,58,237,0.25),var(--shadow-glow);
+}
 
-/* Play overlay */
-.play-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-30%) scale(0.7);z-index:6;background:rgba(59,130,246,0.90);border:none;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all var(--transition-spring);cursor:pointer;box-shadow:0 4px 16px rgba(59,130,246,0.4);backdrop-filter:blur(8px);}
-.song-card:hover .play-overlay{opacity:1;transform:translate(-50%,-50%) scale(1);}
-.play-overlay:hover{background:var(--primary);box-shadow:0 6px 20px rgba(59,130,246,0.5);transform:translate(-50%,-50%) scale(1.08)!important;}
+/* Play/Queue actions overlay */
+.play-actions-overlay{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-30%) scale(0.7);
+  z-index:6;display:flex;gap:var(--space-3);
+  opacity:0;transition:all var(--transition-spring);
+}
+.song-card:hover .play-actions-overlay{opacity:1;transform:translate(-50%,-50%) scale(1);}
+
+.action-btn{
+  background:var(--gradient-neon);border:none;border-radius:50%;
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;box-shadow:var(--neon-glow-purple);backdrop-filter:blur(8px);
+  transition:all var(--transition-spring);
+}
+.action-btn:hover{transform:scale(1.10)!important;}
+
+.action-btn.queue-btn{
+  background:rgba(15,16,32,0.80);
+  border:1px solid rgba(124,58,237,0.50);
+  box-shadow:0 0 15px rgba(124,58,237,0.20);
+}
+.action-btn.queue-btn:hover{background:rgba(124,58,237,0.20);border-color:var(--primary-bright);}
 
 /* Download overlay */
-.download-overlay{position:absolute;top:10px;right:10px;z-index:6;background:rgba(255,255,255,0.90);border:1px solid var(--border-default);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(-4px);transition:all var(--transition-spring);cursor:pointer;backdrop-filter:blur(8px);color:var(--text-secondary);}
+.download-overlay{
+  position:absolute;top:10px;right:10px;z-index:6;
+  background:rgba(15,16,32,0.80);
+  border:1px solid rgba(124,58,237,0.25);border-radius:10px;
+  width:34px;height:34px;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transform:translateY(-4px);
+  transition:all var(--transition-spring);cursor:pointer;
+  backdrop-filter:blur(8px);color:var(--text-secondary);
+}
 .song-card:hover .download-overlay{opacity:1;transform:translateY(0);}
-.download-overlay:hover{background:var(--primary);border-color:var(--primary);color:white;box-shadow:0 4px 12px rgba(59,130,246,0.3);}
-.download-overlay:disabled{opacity:0.5;cursor:not-allowed;}
+.download-overlay:hover{background:var(--gradient-neon);border-color:var(--primary);color:white;box-shadow:var(--neon-glow-purple);}
+.download-overlay:disabled{opacity:0.4;cursor:not-allowed;}
 
 /* Card content */
 .card-content{position:absolute;bottom:0;left:0;right:0;padding:14px 14px 16px;z-index:4;}
-.card-title{font-family:var(--font-display);font-size:0.88rem;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;letter-spacing:-0.01em;text-shadow:0 1px 3px rgba(0,0,0,0.3);}
-.card-artist{font-size:0.75rem;color:rgba(255,255,255,0.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;text-shadow:0 1px 2px rgba(0,0,0,0.3);}
+.card-title{font-family:var(--font-display);font-size:0.87rem;font-weight:600;color:#f1f5ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;letter-spacing:-0.01em;text-shadow:0 1px 4px rgba(0,0,0,0.60);}
+.card-artist{font-size:0.73rem;color:rgba(200,210,255,0.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;text-shadow:0 1px 3px rgba(0,0,0,0.50);}
