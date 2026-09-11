@@ -17,36 +17,36 @@ jobs:
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
             ffmpeg_src: ffmpeg-static
-            ffmpeg_out: src-tauri/ffmpeg-x86_64-pc-windows-msvc.exe
+            ffmpeg_out: src-tauri/binaries/ffmpeg-x86_64-pc-windows-msvc.exe
             ytdlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe
-            ytdlp_out: src-tauri/yt-dlp-x86_64-pc-windows-msvc.exe
+            ytdlp_out: src-tauri/binaries/yt-dlp-x86_64-pc-windows-msvc.exe
             args: ''
 
           # ── macOS (Apple Silicon) ────────────────────────────────────────
           - platform: macos-latest
             target: aarch64-apple-darwin
             ffmpeg_src: ffmpeg-static
-            ffmpeg_out: src-tauri/ffmpeg-aarch64-apple-darwin
+            ffmpeg_out: src-tauri/binaries/ffmpeg-aarch64-apple-darwin
             ytdlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos
-            ytdlp_out: src-tauri/yt-dlp-aarch64-apple-darwin
+            ytdlp_out: src-tauri/binaries/yt-dlp-aarch64-apple-darwin
             args: '--target aarch64-apple-darwin'
 
           # ── macOS (Intel) ────────────────────────────────────────────────
           - platform: macos-latest
             target: x86_64-apple-darwin
             ffmpeg_src: ffmpeg-static
-            ffmpeg_out: src-tauri/ffmpeg-x86_64-apple-darwin
+            ffmpeg_out: src-tauri/binaries/ffmpeg-x86_64-apple-darwin
             ytdlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos
-            ytdlp_out: src-tauri/yt-dlp-x86_64-apple-darwin
+            ytdlp_out: src-tauri/binaries/yt-dlp-x86_64-apple-darwin
             args: '--target x86_64-apple-darwin'
 
           # ── Linux ────────────────────────────────────────────────────────
           - platform: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             ffmpeg_src: ffmpeg-static
-            ffmpeg_out: src-tauri/ffmpeg-x86_64-unknown-linux-gnu
+            ffmpeg_out: src-tauri/binaries/ffmpeg-x86_64-unknown-linux-gnu
             ytdlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux
-            ytdlp_out: src-tauri/yt-dlp-x86_64-unknown-linux-gnu
+            ytdlp_out: src-tauri/binaries/yt-dlp-x86_64-unknown-linux-gnu
             args: ''
 
     environment: env of karaoke desktop
