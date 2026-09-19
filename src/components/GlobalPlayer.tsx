@@ -20,6 +20,17 @@ import "../pages/SingView.css";
 import "../pages/SingView_Search.css";
 import "../pages/SingView_Search_actions.css";
 
+const isBluetoothDevice = async (deviceId: string): Promise<boolean> => {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const device = devices.find(d => d.kind === 'audioinput' && (d.deviceId === deviceId || (deviceId === 'default' && d.deviceId === 'default')));
+    const label = device?.label.toLowerCase() || '';
+    return label.includes('bluetooth') || label.includes('hands-free') || label.includes('headset') || label.includes('airpods') || label.includes('buds');
+  } catch {
+    return false;
+  }
+};
+
 interface GlobalPlayerProps {
   isMainWindow?: boolean;
 }
@@ -237,8 +248,14 @@ const GlobalPlayer = ({ isMainWindow }: GlobalPlayerProps) => {
         const mics = devices.filter(device => device.kind === 'audioinput');
 
         if (mics.length > 0) {
+          const isBluetooth = await isBluetoothDevice(settings.micDevice);
           const constraints = {
-            audio: {
+            audio: isBluetooth ? {
+              echoCancellation: false,
+              noiseSuppression: false,
+              autoGainControl: false,
+              channelCount: 2
+            } : {
               noiseSuppression: settings.noiseSuppression,
               echoCancellation: settings.noiseSuppression,
             }
@@ -378,8 +395,14 @@ const GlobalPlayer = ({ isMainWindow }: GlobalPlayerProps) => {
 
       await Tone.start();
 
+      const isBluetooth = await isBluetoothDevice(settings.micDevice);
       const constraints = {
-        audio: {
+        audio: isBluetooth ? {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+          channelCount: 2
+        } : {
           noiseSuppression: settings.noiseSuppression,
           echoCancellation: settings.noiseSuppression,
         }
@@ -399,8 +422,15 @@ const GlobalPlayer = ({ isMainWindow }: GlobalPlayerProps) => {
     try {
       await Tone.start();
 
+      const isBluetooth = await isBluetoothDevice(deviceId);
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
+        audio: isBluetooth ? {
+          deviceId: { exact: deviceId },
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+          channelCount: 2
+        } : {
           deviceId: { exact: deviceId },
           noiseSuppression: settings.noiseSuppression,
           echoCancellation: settings.noiseSuppression
@@ -456,9 +486,15 @@ const GlobalPlayer = ({ isMainWindow }: GlobalPlayerProps) => {
 
   const startMediaRecording = async () => {
     try {
+      const isBluetooth = await isBluetoothDevice(settings.micDevice);
       const stream = await navigator.mediaDevices.getUserMedia({
         video: isCameraEnabled,
-        audio: {
+        audio: isBluetooth ? {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+          channelCount: 2
+        } : {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true
